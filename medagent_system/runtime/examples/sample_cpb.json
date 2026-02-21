@@ -1,0 +1,38 @@
+{
+  "patient_id": "synthetic-0001",
+  "timeline": [
+    {
+      "t": "2026-01-12T10:15:00Z",
+      "encounter_type": "outpatient",
+      "ehr_text": "Patient reports intermittent chest pain and shortness of breath with exertion over 2 weeks.",
+      "structured": {
+        "vitals": [{"name": "heart_rate", "value": 102}],
+        "labs": [{"name": "troponin", "value": "borderline"}],
+        "meds": [{"name": "lisinopril"}],
+        "allergies": [{"name": "penicillin"}],
+        "problems": [{"name": "hypertension"}],
+        "procedures": []
+      },
+      "imaging": [
+        {
+          "modality": "CT",
+          "body_part": "chest",
+          "report_text": "Mild bibasilar atelectatic change. No focal consolidation.",
+          "refs": ["dicom://synthetic/series/1"]
+        }
+      ],
+      "genomics": {
+        "vcf_ref": "s3://synthetic/variants/sample1.vcf",
+        "variants": [
+          {
+            "gene": "AGT",
+            "hgvs": "c.803T>C",
+            "zygosity": "heterozygous",
+            "consequence": "missense_variant",
+            "quality": 98.2
+          }
+        ]
+      }
+    }
+  ]
+}

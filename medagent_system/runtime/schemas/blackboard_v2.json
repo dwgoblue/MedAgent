@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "blackboard_v2.schema.json",
+  "title": "MedAgentBlackboardV2",
+  "type": "object",
+  "required": [
+    "patient_id",
+    "revision_id",
+    "patient_summary",
+    "claims_ledger",
+    "verifier_report",
+    "citations",
+    "audit_log"
+  ],
+  "properties": {
+    "patient_id": { "type": "string" },
+    "revision_id": { "type": "integer", "minimum": 0 },
+    "patient_summary": { "type": "object" },
+    "medgemma_report": { "type": ["object", "null"] },
+    "genotype_report": { "type": ["object", "null"] },
+    "draft_soap": { "type": ["object", "null"] },
+    "claims_ledger": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim_id", "claim_text", "claim_type", "confidence"],
+        "properties": {
+          "claim_id": { "type": "string" },
+          "claim_text": { "type": "string" },
+          "claim_type": { "type": "string", "enum": ["Observed", "Inferred", "Recommended"] },
+          "confidence": { "type": "string", "enum": ["High", "Medium", "Low"] },
+          "evidence_items": { "type": "array" },
+          "reasoning": { "type": "string" },
+          "uncertainty": { "type": "string" },
+          "depends_on_claim_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "verifier_report": {
+      "type": "object",
+      "required": ["status", "patch_list"],
+      "properties": {
+        "status": { "type": "string", "enum": ["PASS", "FAIL"] },
+        "patch_list": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "citations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["citation_id", "intent", "query", "source", "summary"],
+        "properties": {
+          "citation_id": { "type": "string" },
+          "intent": { "type": "string" },
+          "query": { "type": "string" },
+          "source": { "type": "string" },
+          "summary": { "type": "string" },
+          "metadata": { "type": "object" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "audit_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestamp_utc", "agent", "action"],
+        "properties": {
+          "timestamp_utc": { "type": "string", "format": "date-time" },
+          "agent": { "type": "string" },
+          "action": { "type": "string" },
+          "details": { "type": "object" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "escalate_to_doctor": { "type": "boolean" },
+    "critic_report": { "type": "object" }
+  },
+  "additionalProperties": true
+}

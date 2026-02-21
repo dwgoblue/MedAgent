@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cpb.schema.json",
+  "title": "CanonicalPatientBundle",
+  "type": "object",
+  "required": ["patient_id", "timeline"],
+  "properties": {
+    "patient_id": { "type": "string" },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["t", "encounter_type"],
+        "properties": {
+          "t": { "type": "string", "format": "date-time" },
+          "encounter_type": { "type": "string" },
+          "ehr_text": { "type": "string" },
+          "structured": {
+            "type": "object",
+            "properties": {
+              "vitals": { "type": "array", "items": { "type": "object" } },
+              "labs": { "type": "array", "items": { "type": "object" } },
+              "meds": { "type": "array", "items": { "type": "object" } },
+              "allergies": { "type": "array", "items": { "type": "object" } },
+              "problems": { "type": "array", "items": { "type": "object" } },
+              "procedures": { "type": "array", "items": { "type": "object" } }
+            },
+            "additionalProperties": true
+          },
+          "imaging": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "modality": { "type": "string" },
+                "body_part": { "type": "string" },
+                "report_text": { "type": "string" },
+                "refs": { "type": "array", "items": { "type": "string" } }
+              },
+              "additionalProperties": true
+            }
+          },
+          "genomics": {
+            "type": "object",
+            "properties": {
+              "vcf_ref": { "type": "string" },
+              "variants": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "gene": { "type": "string" },
+                    "hgvs": { "type": "string" },
+                    "zygosity": { "type": "string" },
+                    "consequence": { "type": "string" },
+                    "quality": { "type": ["number", "string"] }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

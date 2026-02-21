@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claims.schema.json",
+  "title": "ClaimObjects",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["claim_text", "category", "must_verify", "status"],
+    "properties": {
+      "claim_text": { "type": "string" },
+      "category": {
+        "type": "string",
+        "enum": ["variant", "gene-disease", "drug", "guideline", "trial", "imaging", "lab", "epidemiology"]
+      },
+      "must_verify": { "type": "boolean" },
+      "evidence_requirements": { "type": "array", "items": { "type": "string" } },
+      "evidence": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "source": { "type": "string" },
+            "id": { "type": "string" },
+            "url": { "type": "string" },
+            "title": { "type": "string" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "status": { "type": "string", "enum": ["pass", "weak", "fail"] },
+      "resolution": { "type": "string" }
+    },
+    "additionalProperties": true
+  }
+}

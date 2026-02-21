@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ccg.schema.json",
+  "title": "ClinicalConceptGraph",
+  "type": "object",
+  "required": ["patient_id", "concepts"],
+  "properties": {
+    "patient_id": { "type": "string" },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["concept_id", "label", "polarity", "source_modality"],
+        "properties": {
+          "concept_id": { "type": "string" },
+          "label": { "type": "string" },
+          "polarity": { "type": "string", "enum": ["present", "absent", "negated"] },
+          "evidence_strength": { "type": "string", "enum": ["hard", "moderate", "soft"] },
+          "source_modality": { "type": "string", "enum": ["ehr", "genotype", "imaging"] },
+          "time_range": {
+            "type": "object",
+            "properties": {
+              "start": { "type": "string", "format": "date-time" },
+              "end": { "type": "string", "format": "date-time" }
+            },
+            "additionalProperties": false
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["relation", "target"],
+              "properties": {
+                "relation": { "type": "string", "enum": ["depends_on", "supports", "contradicts"] },
+                "target": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

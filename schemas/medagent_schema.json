@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MedAgent PlanOutput",
+  "type": "object",
+  "required": ["ehr_summary", "diagnostic_steps"],
+  "properties": {
+    "ehr_summary": {
+      "type": "object",
+      "required": ["chief_complaint", "key_findings", "red_flags", "constraints"],
+      "properties": {
+        "chief_complaint": {"type": "string"},
+        "key_findings": {"type": "array", "items": {"type": "string"}},
+        "red_flags": {"type": "array", "items": {"type": "string"}},
+        "constraints": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "diagnostic_steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "rationale", "urgency", "info_gain"],
+        "properties": {
+          "name": {"type": "string"},
+          "rationale": {"type": "string"},
+          "urgency": {"type": "string"},
+          "info_gain": {"type": "string"},
+          "contraindications": {"type": "array", "items": {"type": "string"}},
+          "alternatives": {"type": "array", "items": {"type": "string"}},
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["source", "snippet"],
+              "properties": {
+                "source": {"type": "string"},
+                "snippet": {"type": "string"},
+                "url": {"type": ["string", "null"]},
+                "confidence": {"type": ["number", "null"]}
+              }
+            }
+          }
+        }
+      }
+    },
+    "soap_note": {
+      "type": ["object", "null"],
+      "properties": {
+        "subjective": {"type": "string"},
+        "objective": {"type": "string"},
+        "assessment": {"type": "string"},
+        "plan": {"type": "string"}
+      }
+    },
+    "missing_info_questions": {"type": "array", "items": {"type": "string"}},
+    "evidence": {"type": "array", "items": {"type": "object"}},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "provenance": {"type": "object"}
+  }
+}
