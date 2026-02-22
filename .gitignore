@@ -1,0 +1,10 @@
+# Local Codex artifacts (can include sensitive env snapshots)
+.codex/
+
+# Local runtime logs and run outputs
+log/
+medagent_system/runtime/examples/cluster_runs/
+
+# Python caches
+__pycache__/
+.pytest_cache/
