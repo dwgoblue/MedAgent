@@ -100,6 +100,23 @@ sbatch medagent_system/runtime/run_medagent.sbat \
   --synthlab-modalities fhir,genomics,notes,dicom
 ```
 
+Run 1k outcome benchmark + BioMCP external gate:
+
+```bash
+sbatch medagent_system/runtime/run_medagent.sbat \
+  --mode v2 \
+  --benchmark-outcomes 1 \
+  --benchmark-max-patients 1000 \
+  --benchmark-use-biomcp-gate 1 \
+  --synthlab-modalities fhir,genomics,notes,dicom
+```
+
+In benchmark mode, runtime defaults to strict full-run behavior:
+
+- OpenAI verifier/supervisor enabled (`gpt-5.2` unless overridden)
+- BioMCP SDK required with no local-RAG fallback (`MEDAGENT_V2_BIOMCP_NO_FALLBACK=1`)
+- Critic enabled by default
+
 OpenAI via flags:
 
 ```bash
@@ -132,6 +149,24 @@ Set `MEDAGENT_RUN_LOG_DIR` to enable per-run logging:
 - `agent_comms.jsonl`: inter-agent communications/prompts
 - `run_meta.json`: run metadata and file pointers
 
+## Dashboard
+
+View SOAP note, reports, and a knowledge graph for run outputs:
+
+```bash
+streamlit run medagent_system/runtime/dashboard.py
+```
+
+In the sidebar, provide a run JSON path such as:
+
+- `medagent_system/runtime/examples/cluster_runs/<run_id>/synthlab_output.json`
+- `medagent_system/runtime/examples/cluster_runs/<run_id>/final_output.json`
+
+When present, the dashboard auto-loads:
+
+- `logs/agent_outputs.jsonl`
+- `logs/agent_comms.jsonl`
+
 ## BioMCP SDK smoke check
 
 ```bash
@@ -156,6 +191,24 @@ python3 medagent_system/runtime/harness/synthlab_runner.py \
   --max-patients 1 \
   --download-if-missing
 ```
+
+## SynthLab 1k benchmark run
+
+Run a large outcome benchmark directly (without sbatch wrapper):
+
+```bash
+python3 medagent_system/runtime/harness/synthlab_benchmark.py \
+  --max-patients 1000 \
+  --modalities fhir,genomics,notes,dicom \
+  --use-biomcp-sdk 1 \
+  --output-dir medagent_system/runtime/examples/benchmark_runs/latest \
+  --download-if-missing
+```
+
+Artifacts:
+
+- `benchmark_summary.json`
+- `benchmark_per_patient.jsonl`
 
 ## OpenAI reasoning + local RAG (optional)
 
@@ -204,7 +257,7 @@ Terminal chat launcher:
 Use local Biomni clone as orchestration/tool substrate:
 
 ```bash
-export MEDAGENT_BIOMNI_REPO=/home/daweilin/medagent/Biomni
+export MEDAGENT_BIOMNI_REPO=/home/daweilin/MedAgent/Biomni
 export MEDAGENT_BIOMNI_LLM=gpt-5.2
 export MEDAGENT_BIOMNI_LOAD_DATALAKE=0
 ```

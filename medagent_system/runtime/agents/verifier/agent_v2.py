@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+from medagent_system.runtime.core.config import RuntimeConfig
 from medagent_system.runtime.core.models_v2 import BlackboardState, VerifierPatch, VerifierReport
+from medagent_system.runtime.tools.openai_client.client import OpenAIReasoner
+from medagent_system.runtime.tools.retrieval.biomcp_sdk_client import query_biomcp_sdk
 
 
-def run_verifier_v2(state: BlackboardState) -> VerifierReport:
+def run_verifier_v2(state: BlackboardState, config: RuntimeConfig | None = None) -> VerifierReport:
+    cfg = config or RuntimeConfig.from_env()
     patches: list[VerifierPatch] = []
     draft = state.draft_soap
+    reasoner = OpenAIReasoner(model=cfg.openai_model) if cfg.use_openai else None
 
     if draft is None:
         patches.append(
@@ -20,6 +25,16 @@ def run_verifier_v2(state: BlackboardState) -> VerifierReport:
         state.verifier_report = report
         state.add_audit("a5_verifier", "fail_missing_draft")
         return report
+
+    if getattr(draft, "confidence_score", 1.0) <= 0.0:
+        patches.append(
+            VerifierPatch(
+                claim_id="N/A",
+                issue_type="zero_confidence",
+                message="Supervisor confidence score is 0.0 due to missing BioMCP evidence",
+                suggested_fix="Route to critic review and clinician escalation path",
+            )
+        )
 
     # Required SOAP fields
     for field_name in ["subjective", "objective", "assessment", "plan"]:
@@ -79,6 +94,52 @@ def run_verifier_v2(state: BlackboardState) -> VerifierReport:
                     suggested_fix="Add guideline/literature support or keep as explicit hypothesis",
                 )
             )
+
+        if claim.claim_type in {"Inferred", "Recommended"} and cfg.use_biomcp_sdk:
+            sdk_rows, _ = query_biomcp_sdk(
+                intent="GENERAL_LITERATURE_SUPPORT",
+                query=claim.claim_text,
+                max_results=cfg.v2_biomcp_max_sources_per_claim,
+            )
+            if not sdk_rows:
+                patches.append(
+                    VerifierPatch(
+                        claim_id=claim.claim_id,
+                        issue_type="biomcp_empty",
+                        message=f"BioMCP returned empty for claim: {claim.claim_text[:120]}",
+                        suggested_fix="Set confidence to 0 and force critic review/escalation",
+                    )
+                )
+                continue
+
+            if reasoner is not None:
+                snippets = [{"source": s.source, "text": s.summary[:800]} for s in sdk_rows]
+                try:
+                    decision = reasoner.verify_claim(
+                        claim_text=claim.claim_text,
+                        category=claim.claim_type.lower(),
+                        evidence_requirements=["biomcp_sdk_support"],
+                        snippets=snippets,
+                    )
+                except Exception as exc:
+                    patches.append(
+                        VerifierPatch(
+                            claim_id=claim.claim_id,
+                            issue_type="external_verifier_error",
+                            message=f"OpenAI verifier error: {type(exc).__name__}",
+                            suggested_fix="Retry verifier call or route to manual review",
+                        )
+                    )
+                    continue
+                if decision.status != "pass":
+                    patches.append(
+                        VerifierPatch(
+                            claim_id=claim.claim_id,
+                            issue_type="external_verification_" + decision.status,
+                            message=f"External verification returned {decision.status}: {claim.claim_text[:120]}",
+                            suggested_fix="Revise claim or keep as uncertainty with escalation",
+                        )
+                    )
 
     status = "PASS" if not patches else "FAIL"
     report = VerifierReport(

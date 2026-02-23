@@ -59,6 +59,7 @@ def retrieve_for_intent(
         queries.append(query + " review guideline consensus")
 
     use_biomcp_sdk = os.getenv("MEDAGENT_USE_BIOMCP_SDK", "0").strip() == "1"
+    no_fallback = os.getenv("MEDAGENT_V2_BIOMCP_NO_FALLBACK", "1").strip() == "1"
     rows: list[CitationRecord] = []
     seen: set[str] = set()
     for step, q in enumerate(queries, start=1):
@@ -110,6 +111,8 @@ def retrieve_for_intent(
                 kind="fallback_notice",
                 prompt={"reason": "empty_or_failed_sdk_response", "query": q},
             )
+            if no_fallback:
+                continue
         snippets = retriever.retrieve(q, top_k=policy.max_sources_per_claim)
         for snip in snippets:
             key = f"{snip.source}:{snip.text[:120]}"

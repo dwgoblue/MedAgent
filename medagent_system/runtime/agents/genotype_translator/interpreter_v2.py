@@ -46,6 +46,8 @@ def run_genotype_interpreter_v2(
 
     hypotheses: list[GenotypeHypothesis] = []
     interpretations: list[str] = []
+    biomcp_query_count = 0
+    biomcp_empty_count = 0
 
     for v in variants[:8]:
         label = ", ".join(filter(None, [v.gene, v.hgvs, v.zygosity])) or "unspecified variant"
@@ -58,6 +60,10 @@ def run_genotype_interpreter_v2(
             existing_citations=state.citations,
             policy=policy,
         )
+        if config.use_biomcp_sdk:
+            biomcp_query_count += 1
+            if not citations:
+                biomcp_empty_count += 1
         if citations:
             state.citations.extend([c for c in citations if c.citation_id not in {x.citation_id for x in state.citations}])
 
@@ -101,7 +107,14 @@ def run_genotype_interpreter_v2(
         actionability_caveats=[
             "No therapeutic action should be based on genotype alone",
             "Conflict across sources should downgrade confidence",
-        ],
+        ]
+        + (
+            ["BioMCP returned empty evidence for at least one genotype query"]
+            if config.use_biomcp_sdk and biomcp_empty_count > 0
+            else []
+        ),
+        biomcp_query_count=biomcp_query_count,
+        biomcp_empty_count=biomcp_empty_count,
     )
     state.genotype_report = report
     state.add_audit(

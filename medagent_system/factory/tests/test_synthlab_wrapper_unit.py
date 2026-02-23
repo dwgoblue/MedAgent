@@ -21,3 +21,25 @@ def test_evaluate_run_basic() -> None:
     assert eval_out["must_verify_count"] == 2
     assert eval_out["must_verify_pass_rate"] == 0.5
     assert eval_out["must_verify_weak_rate"] == 0.5
+
+
+def test_evaluate_run_v2_categories_and_flag() -> None:
+    output = FinalOutput(
+        soap_final="x",
+        problem_list_ranked=["a"],
+        plan_options_ranked_non_prescriptive=["p"],
+        evidence_table=[
+            {"category": "observed", "status": "pass"},
+            {"category": "inferred", "status": "pass"},
+            {"category": "recommended", "status": "fail"},
+            {"category": "observed", "must_verify": True, "status": "weak"},
+        ],
+        sensitivity_map=[{"x": 1}],
+        uncertainty_and_escalation_guidance="g",
+        provenance={"patient_id": "p1"},
+    )
+    eval_out = _evaluate_run(output)
+    assert eval_out["must_verify_count"] == 3
+    assert eval_out["must_verify_pass_rate"] == 0.3333
+    assert eval_out["must_verify_weak_rate"] == 0.3333
+    assert eval_out["must_verify_fail_rate"] == 0.3333

@@ -178,7 +178,24 @@ def _patient_to_cpb(patient: Any) -> tuple[CPB, dict[str, Any]]:
 
 def _evaluate_run(output: FinalOutput) -> dict[str, Any]:
     evidence_table = output.evidence_table
-    must_verify = [e for e in evidence_table if e.get("category") in {"guideline", "variant", "gene-disease", "imaging", "lab"}]
+    must_verify: list[dict[str, Any]] = []
+    for row in evidence_table:
+        category = str(row.get("category", "")).strip().lower()
+        must = row.get("must_verify")
+        if isinstance(must, bool):
+            if must:
+                must_verify.append(row)
+            continue
+        if category in {
+            "guideline",
+            "variant",
+            "gene-disease",
+            "imaging",
+            "lab",
+            "inferred",
+            "recommended",
+        }:
+            must_verify.append(row)
     if must_verify:
         pass_rate = sum(1 for e in must_verify if e.get("status") == "pass") / len(must_verify)
         weak_rate = sum(1 for e in must_verify if e.get("status") == "weak") / len(must_verify)
@@ -208,8 +225,18 @@ def run_from_synthlab(
         modalities = ["fhir", "genomics", "notes", "dicom"]
 
     if download_if_missing:
+        # SynthLab uses "notes" in dataset loading, but downloader expects "csv".
+        download_components: list[str] = []
+        for modality in modalities:
+            component = "csv" if modality == "notes" else modality
+            if component not in download_components:
+                download_components.append(component)
         try:
-            sl.download_coherent_dataset(components=modalities, max_patients=max_patients, verbose=True)
+            sl.download_coherent_dataset(
+                components=download_components,
+                max_patients=max_patients,
+                verbose=True,
+            )
         except Exception as exc:
             raise RuntimeError(f"Failed to download coherent dataset: {exc}") from exc
 

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for MedGemma-based multi-agent work under `/home/daweilin/medagent/agentic`.
+Guidance for MedGemma-based multi-agent work under `/home/daweilin/MedAgent/agentic`.
 
 ## System Planes
 - Plane A: Research Runtime (Biomni-style) executes tasks, tool orchestration, verification, and report generation.

@@ -41,6 +41,7 @@ def build_final_output_from_blackboard(
                 "claim_id": claim.claim_id,
                 "claim_text": claim.claim_text,
                 "category": claim.claim_type.lower(),
+                "must_verify": claim.claim_type in {"Inferred", "Recommended"},
                 "status": status,
                 "evidence_ids": [e.source_id for e in claim.evidence_items],
                 "resolution": claim.reasoning,

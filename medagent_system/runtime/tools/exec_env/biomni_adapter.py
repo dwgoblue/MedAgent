@@ -20,8 +20,8 @@ class BiomniAdapterConfig:
 
     @classmethod
     def from_env(cls) -> "BiomniAdapterConfig":
-        repo_path = Path(os.getenv("MEDAGENT_BIOMNI_REPO", "/home/daweilin/medagent/Biomni"))
-        data_path = Path(os.getenv("MEDAGENT_BIOMNI_DATA", "/home/daweilin/medagent/.biomni_data"))
+        repo_path = Path(os.getenv("MEDAGENT_BIOMNI_REPO", "/home/daweilin/MedAgent/Biomni"))
+        data_path = Path(os.getenv("MEDAGENT_BIOMNI_DATA", "/home/daweilin/MedAgent/.biomni_data"))
         llm = os.getenv("MEDAGENT_BIOMNI_LLM", "gpt-5.2")
         source = os.getenv("MEDAGENT_BIOMNI_SOURCE") or None
         use_tool_retriever = os.getenv("MEDAGENT_BIOMNI_TOOL_RETRIEVER", "1") == "1"

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for implementation work under `/home/daweilin/medagent/medagent_system`.
+Guidance for implementation work under `/home/daweilin/MedAgent/medagent_system`.
 
 ## Mission
 Build the actual MedGemma-based multi-agent runtime with evidence-backed verification and counterfactual robustness, while staying aligned with SynthLab conventions.

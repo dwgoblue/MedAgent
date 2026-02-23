@@ -39,6 +39,9 @@ MEDGEMMA_USE_IMAGE_TENSORS=""
 SYNTHLAB_MAX_PATIENTS=""
 SYNTHLAB_MODALITIES=""
 SYNTHLAB_DOWNLOAD_IF_MISSING=""
+BENCHMARK_OUTCOMES=""
+BENCHMARK_MAX_PATIENTS=""
+BENCHMARK_USE_BIOMCP_GATE=""
 
 usage() {
   cat <<'EOF'
@@ -70,6 +73,9 @@ Options:
   --synthlab-max-patients <int>
   --synthlab-modalities <csv>
   --synthlab-download-if-missing 0|1
+  --benchmark-outcomes 0|1
+  --benchmark-max-patients <int>
+  --benchmark-use-biomcp-gate 0|1
   -h|--help
 EOF
 }
@@ -107,6 +113,9 @@ while [[ $# -gt 0 ]]; do
     --synthlab-max-patients) SYNTHLAB_MAX_PATIENTS="${2:?missing value for --synthlab-max-patients}"; shift 2 ;;
     --synthlab-modalities) SYNTHLAB_MODALITIES="${2:?missing value for --synthlab-modalities}"; shift 2 ;;
     --synthlab-download-if-missing) SYNTHLAB_DOWNLOAD_IF_MISSING="${2:?missing value for --synthlab-download-if-missing}"; shift 2 ;;
+    --benchmark-outcomes) BENCHMARK_OUTCOMES="${2:?missing value for --benchmark-outcomes}"; shift 2 ;;
+    --benchmark-max-patients) BENCHMARK_MAX_PATIENTS="${2:?missing value for --benchmark-max-patients}"; shift 2 ;;
+    --benchmark-use-biomcp-gate) BENCHMARK_USE_BIOMCP_GATE="${2:?missing value for --benchmark-use-biomcp-gate}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $1" >&2; usage; exit 2 ;;
   esac
@@ -119,6 +128,14 @@ elif [[ "$MODE" == "v2" ]]; then
 else
   echo "Unsupported mode: $MODE (use v1 or v2)" >&2
   exit 2
+fi
+
+# Strict full-run defaults for outcome benchmark mode.
+if [[ "${BENCHMARK_OUTCOMES:-0}" == "1" ]]; then
+  if [[ -z "$USE_OPENAI" ]]; then USE_OPENAI="1"; fi
+  if [[ -z "$OPENAI_MODEL" ]]; then OPENAI_MODEL="gpt-5.2"; fi
+  if [[ -z "$ENABLE_CRITIC" ]]; then ENABLE_CRITIC="1"; fi
+  if [[ -z "$USE_BIOMCP_SDK" ]]; then USE_BIOMCP_SDK="1"; fi
 fi
 
 # Try to activate conda env when available.
@@ -159,6 +176,7 @@ if [[ -n "$USE_OPENAI" ]]; then export MEDAGENT_USE_OPENAI="$USE_OPENAI"; fi
 if [[ -n "$OPENAI_MODEL" ]]; then export MEDAGENT_OPENAI_MODEL="$OPENAI_MODEL"; fi
 if [[ -n "$OPENAI_API_KEY_ARG" ]]; then export OPENAI_API_KEY="$OPENAI_API_KEY_ARG"; fi
 if [[ -n "$USE_BIOMCP_SDK" ]]; then export MEDAGENT_USE_BIOMCP_SDK="$USE_BIOMCP_SDK"; fi
+if [[ "${BENCHMARK_OUTCOMES:-0}" == "1" ]]; then export MEDAGENT_V2_BIOMCP_NO_FALLBACK=1; fi
 if [[ -n "$ENABLE_CRITIC" ]]; then export MEDAGENT_V2_ENABLE_CRITIC="$ENABLE_CRITIC"; fi
 if [[ -n "$MAX_SUPERVISOR_REVISIONS" ]]; then export MEDAGENT_V2_MAX_SUPERVISOR_REVISIONS="$MAX_SUPERVISOR_REVISIONS"; fi
 if [[ -n "$MAX_CRITIC_CYCLES" ]]; then export MEDAGENT_V2_MAX_CRITIC_CYCLES="$MAX_CRITIC_CYCLES"; fi
@@ -171,9 +189,31 @@ if [[ -n "$MEDGEMMA_USE_IMAGE_TENSORS" ]]; then export MEDAGENT_MEDGEMMA_USE_IMA
 OUTPUT_JSON="$RUN_DIR/final_output.json"
 
 echo "[medagent] mode=$PIPELINE_MODE cpb=$CPB_PATH run_dir=$RUN_DIR"
-if [[ -n "$SYNTHLAB_MAX_PATIENTS" && "$SYNTHLAB_MAX_PATIENTS" -gt 0 ]]; then
+if [[ "${BENCHMARK_OUTCOMES:-0}" == "1" ]]; then
+  BM_OUT_DIR="$RUN_DIR/benchmark"
+  MODS="${SYNTHLAB_MODALITIES:-fhir,genomics,notes,dicom}"
+  BM_PATS="${BENCHMARK_MAX_PATIENTS:-${SYNTHLAB_MAX_PATIENTS:-1000}}"
+  BM_GATE="${BENCHMARK_USE_BIOMCP_GATE:-1}"
+  if [[ -z "${SYNTHLAB_DOWNLOAD_IF_MISSING:-}" ]]; then
+    SYNTHLAB_DOWNLOAD_IF_MISSING="1"
+  fi
+  EXTRA=()
+  if [[ "${SYNTHLAB_DOWNLOAD_IF_MISSING:-0}" == "1" ]]; then
+    EXTRA+=(--download-if-missing)
+  fi
+  python3 medagent_system/runtime/harness/synthlab_benchmark.py \
+    --max-patients "$BM_PATS" \
+    --modalities "$MODS" \
+    --use-biomcp-sdk "$BM_GATE" \
+    --output-dir "$BM_OUT_DIR" \
+    "${EXTRA[@]}"
+  OUTPUT_JSON="$BM_OUT_DIR/benchmark_summary.json"
+elif [[ -n "$SYNTHLAB_MAX_PATIENTS" && "$SYNTHLAB_MAX_PATIENTS" -gt 0 ]]; then
   SYN_OUT="$RUN_DIR/synthlab_output.json"
   MODS="${SYNTHLAB_MODALITIES:-fhir,genomics,notes,dicom}"
+  if [[ -z "${SYNTHLAB_DOWNLOAD_IF_MISSING:-}" ]]; then
+    SYNTHLAB_DOWNLOAD_IF_MISSING="1"
+  fi
   EXTRA=()
   if [[ "${SYNTHLAB_DOWNLOAD_IF_MISSING:-0}" == "1" ]]; then
     EXTRA+=(--download-if-missing)

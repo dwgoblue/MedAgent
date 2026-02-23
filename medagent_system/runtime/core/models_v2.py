@@ -50,6 +50,8 @@ class GenotypeReport:
     interpretations: list[str] = field(default_factory=list)
     hypotheses: list[GenotypeHypothesis] = field(default_factory=list)
     actionability_caveats: list[str] = field(default_factory=list)
+    biomcp_query_count: int = 0
+    biomcp_empty_count: int = 0
 
 
 @dataclass
@@ -60,6 +62,7 @@ class DraftSOAP:
     plan: str = ""
     differential_ranked: list[str] = field(default_factory=list)
     open_questions: list[str] = field(default_factory=list)
+    confidence_score: float = 0.5
 
 
 @dataclass

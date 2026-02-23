@@ -23,8 +23,8 @@ Use the local `Biomni` clone as the execution substrate and tool-orchestration b
 
 ## Environment variables
 
-- `MEDAGENT_BIOMNI_REPO` (default `/home/daweilin/medagent/Biomni`)
-- `MEDAGENT_BIOMNI_DATA` (default `/home/daweilin/medagent/.biomni_data`)
+- `MEDAGENT_BIOMNI_REPO` (default `/home/daweilin/MedAgent/Biomni`)
+- `MEDAGENT_BIOMNI_DATA` (default `/home/daweilin/MedAgent/.biomni_data`)
 - `MEDAGENT_BIOMNI_LLM` (default `gpt-5.2`)
 - `MEDAGENT_BIOMNI_SOURCE` (optional provider override)
 - `MEDAGENT_BIOMNI_TOOL_RETRIEVER` (`1`/`0`)

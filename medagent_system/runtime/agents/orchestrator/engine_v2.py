@@ -16,6 +16,7 @@ from medagent_system.runtime.core.config import RuntimeConfig
 from medagent_system.runtime.core.models import CPB, DraftOutput, FinalOutput
 from medagent_system.runtime.core.models_v2 import init_blackboard_from_cpb
 from medagent_system.runtime.core.run_logger import RunLogger
+from medagent_system.runtime.tools.medgemma import medgemma_enabled
 from medagent_system.runtime.tools.retrieval.simple_rag import LocalRAGRetriever
 
 
@@ -94,20 +95,34 @@ class OrchestratorEngineV2:
                     kind="agent_prompt",
                     prompt={"checks": ["contradictions", "unsupported_claims", "timeline", "soap_required_fields"]},
                 )
-            verifier = run_verifier_v2(state)
+            verifier = run_verifier_v2(state, config=self.config)
             if logger is not None:
                 logger.log_agent_output(agent="a5_verifier", stage="verifier_report", output=verifier)
 
-            if verifier.status == "PASS":
+            high_stakes_now = has_high_stakes_claims(state)
+            if verifier.status == "PASS" and not high_stakes_now:
                 state.add_audit("orchestrator_v2", "verification_pass", revision=revision)
                 break
 
             if revision >= self.config.v2_max_supervisor_revisions:
-                state.add_audit("orchestrator_v2", "max_revisions_reached", revision=revision)
+                state.add_audit(
+                    "orchestrator_v2",
+                    "max_revisions_reached",
+                    revision=revision,
+                    high_stakes=high_stakes_now,
+                    verifier_status=verifier.status,
+                )
                 break
 
-            a1_focus, a2_focus = build_targeted_revision_requests(state)
-            feedback = [p.message for p in verifier.patch_list[:6]]
+            if verifier.status != "PASS":
+                a1_focus, a2_focus = build_targeted_revision_requests(state)
+                feedback = [p.message for p in verifier.patch_list[:6]]
+            else:
+                a1_focus = ["High-stakes narrative requires stronger objective grounding and explicit negatives."]
+                a2_focus = ["High-stakes claim requires stronger genotype/literature support or confidence downgrade."]
+                feedback = ["High-stakes claims require another upstream evidence-focused revision."]
+                state.add_audit("orchestrator_v2", "high_stakes_revision_requested", revision=revision)
+
             if logger is not None:
                 logger.log_comm(
                     sender="a5_verifier",
@@ -131,9 +146,8 @@ class OrchestratorEngineV2:
             run_genotype_interpreter_v2(cpb, state, self.retriever, self.config, focus=a2_focus)
 
         high_stakes = has_high_stakes_claims(state)
-        need_critic = (
-            state.verifier_report.status != "PASS" or high_stakes
-        ) and self.config.v2_enable_critic
+        zero_confidence = bool(state.draft_soap is not None and state.draft_soap.confidence_score <= 0.0)
+        need_critic = self.config.v2_enable_critic
 
         if need_critic:
             for _ in range(self.config.v2_max_critic_cycles):
@@ -143,7 +157,7 @@ class OrchestratorEngineV2:
                         receiver="a6_critic",
                         kind="agent_prompt",
                         prompt={
-                            "trigger": "persistent_fail_or_high_stakes",
+                            "trigger": "enabled" if not (state.verifier_report.status != "PASS" or high_stakes or zero_confidence) else "persistent_fail_or_high_stakes_or_zero_confidence",
                             "inputs": ["draft_soap", "claims_ledger", "verifier_report"],
                         },
                     )
@@ -179,8 +193,13 @@ class OrchestratorEngineV2:
             state.add_audit("orchestrator_v2", "causal_postcheck", findings=len(sensitivity_map))
 
         tooling = {
-            "medgemma": "v2-reporter-placeholder",
-            "biomcp": "v2-policy-biomcp-sdk" if self.config.use_biomcp_sdk else "v2-policy-local-rag",
+            "medgemma": "v2-reporter-medgemma-local" if medgemma_enabled() else "v2-reporter-heuristic",
+            "biomcp": (
+                "v2-policy-biomcp-sdk-strict-no-fallback"
+                if self.config.use_biomcp_sdk
+                else "v2-policy-local-rag"
+            ),
+            "verifier": "v2-openai-biomcp" if self.config.use_openai else "v2-rules-only",
             "critic_enabled": self.config.v2_enable_critic,
             "causal_postcheck": self.config.v2_enable_causal_postcheck,
         }
