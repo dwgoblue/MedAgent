@@ -1,3 +1,6 @@
+# Local VSCode artifacts
+.vscode/
+
 # Local Codex artifacts (can include sensitive env snapshots)
 .codex/
 
