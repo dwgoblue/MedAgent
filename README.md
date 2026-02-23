@@ -8,18 +8,24 @@ For architecture and advanced implementation details, see:
 
 ## 1) Environment setup
 
+Clone this repository along with its submodules: 
+
+```bash
+git clone --recursive https://github.com/dwgoblue/MedAgent.git
+cd MedAgent
+```
+
 Use your existing `synthlab` env (recommended):
 
 ```bash
+conda env create -f synthlab/conda/synthlab.yml
 conda activate synthlab
-cd /home/daweilin/MedAgent
 export PYTHONPATH=.
 ```
 
 Optional dependency install refresh:
 
 ```bash
-pip install -r synthlab/envs/requirements.txt
 pip install -r medgemma_cup/envs/requirements.txt
 ```
 
@@ -94,7 +100,7 @@ sbatch medagent_system/runtime/run_medagent.sbat --mode v1
 sbatch medagent_system/runtime/run_medagent.sbat \
   --mode v2 \
   --use-medgemma 1 \
-  --hf-home /grid/koo/home/dalin/.cache/huggingface \
+  --hf-home $HOME/.cache/huggingface \
   --medgemma-model-id google/medgemma-1.5-4b-it \
   --use-biomcp-sdk 1 \
   --enable-critic 1 \
