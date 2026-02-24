@@ -84,7 +84,7 @@ python3 medagent/runtime/check_biomcp_sdk.py \
   --query "BRAF melanoma"
 ```
 
-## 6) Run on cluster (.sbat)
+## 6) End-to-end agentic workflow on cluster (.sbat)
 
 Default script:
 - `medagent/runtime/run_medagent.sbat`
@@ -121,6 +121,29 @@ sbatch medagent/runtime/run_medagent.sbat \
   --synthlab-download-if-missing 1
 ```
 
+### v2 benchmark run (5 patients, strict full pipeline)
+
+```bash
+sbatch medagent/runtime/run_medagent.sbat \
+  --mode v2 \
+  --use-medgemma 1 \
+  --use-medgemma-image-tensors 1 \
+  --hf-home /grid/koo/home/dalin/.cache/huggingface \
+  --medgemma-model-id google/medgemma-1.5-4b-it \
+  --use-openai 1 \
+  --openai-model gpt-5.2 \
+  --use-biomcp-sdk 1 \
+  --enable-critic 1 \
+  --max-supervisor-revisions 3 \
+  --max-critic-cycles 1 \
+  --benchmark-outcomes 1 \
+  --benchmark-max-patients 5 \
+  --benchmark-use-biomcp-gate 1 \
+  --kg-backend dashboard \
+  --synthlab-download-if-missing 1 \
+  --synthlab-modalities fhir,genomics,notes,dicom
+```
+
 ## 7) Outputs and logs
 
 Slurm logs:
@@ -131,14 +154,35 @@ Run artifacts:
 - `medagent/runtime/examples/cluster_runs/<run_id>/final_output.json`
 - `medagent/runtime/examples/cluster_runs/<run_id>/logs/agent_outputs.jsonl`
 - `medagent/runtime/examples/cluster_runs/<run_id>/logs/agent_comms.jsonl`
+- `medagent/runtime/examples/cluster_runs/<run_id>/benchmark/benchmark_summary.json`
+- `medagent/runtime/examples/cluster_runs/<run_id>/benchmark/benchmark_per_patient.jsonl`
 
-## 8) Optional terminal chat with MedGemma
+## 8) Launch dashboard (server + tunnel)
+
+Run on server:
+
+```bash
+conda activate medagent
+cd ~/MedAgent
+streamlit run medagent/runtime/dashboard.py --server.port 8501 --server.address 127.0.0.1
+```
+
+From local machine:
+
+```bash
+ssh -N -L 8501:127.0.0.1:8501 dalin@bamdev3
+```
+
+Open:
+- `http://127.0.0.1:8501`
+
+## 9) Optional terminal chat with MedGemma
 
 ```bash
 ./medagent/runtime/chat_medgemma.sh
 ```
 
-## 9) Troubleshooting
+## 10) Troubleshooting
 
 - `FileNotFoundError: ~/.cache/synthlab/coherent`:
   use `--synthlab-download-if-missing 1` in `.sbat` or pre-download coherent dataset.
