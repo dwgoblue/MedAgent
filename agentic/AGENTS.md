@@ -9,8 +9,8 @@ Guidance for MedGemma-based multi-agent work under `/home/daweilin/MedAgent/agen
 
 ## Scope Boundaries
 - This folder defines control-plane architecture, contracts, and guardrails.
-- Runtime implementation is isolated in `medagent_system/runtime`.
-- Factory workflows are isolated in `medagent_system/factory`.
+- Runtime implementation is isolated in `medagent/runtime`.
+- Factory workflows are isolated in `medagent/factory`.
 - SynthLab remains the authoritative synthetic data source and evaluation harness.
 
 ## Canonical Runtime Artifacts

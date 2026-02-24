@@ -74,9 +74,9 @@ description: Use this skill when designing or implementing the MedGemma + SynthL
 ## File Layout
 
 - Control-plane docs: `agentic/`
-- Runtime implementation: `medagent_system/runtime/`
-- Factory workflows/tests/ci: `medagent_system/factory/`
-- Architecture docs: `medagent_system/docs/`
+- Runtime implementation: `medagent/runtime/`
+- Factory workflows/tests/ci: `medagent/factory/`
+- Architecture docs: `medagent/docs/`
 
 ## Factory Requirements (for code changes)
 

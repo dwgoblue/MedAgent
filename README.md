@@ -1,32 +1,33 @@
 # MedAgent
 
 User-facing onboarding for installing and running MedAgent (v1/v2), including MedGemma, SynthLab, and BioMCP workflows.
+MedAgent is inspired by Biomni's agent/tool orchestration patterns, but this repository does not vendor the Biomni codebase.
 
 For architecture and advanced implementation details, see:
-- `medagent_system/README.md`
-- `medagent_system/runtime/README.md`
+- `medagent/README.md`
+- `medagent/runtime/README.md`
 
 ## 1) Environment setup
 
-Clone this repository along with its submodules: 
+Clone this repository along with its submodules:
 
 ```bash
 git clone --recursive https://github.com/dwgoblue/MedAgent.git
 cd MedAgent
 ```
 
-Use your existing `synthlab` env (recommended):
+Use the unified `medagent` env:
 
 ```bash
-conda env create -f synthlab/conda/synthlab.yml
-conda activate synthlab
+conda env create -f environment.yml
+conda activate medagent
 export PYTHONPATH=.
 ```
 
 Optional dependency install refresh:
 
 ```bash
-pip install -r medgemma_cup/envs/requirements.txt
+pip install -r requirements.txt
 ```
 
 ## 2) API key setup
@@ -48,15 +49,15 @@ export HF_TOKEN="<your_hf_token>"
 Run core test suite:
 
 ```bash
-pytest -q medagent_system/factory/tests
+pytest -q medagent/factory/tests
 ```
 
 Run v1-only regression tests:
 
 ```bash
-pytest -q medagent_system/factory/tests/test_mvp_smoke.py \
-         medagent_system/factory/tests/test_openai_fallback.py \
-         medagent_system/factory/tests/test_synthlab_wrapper_unit.py
+pytest -q medagent/factory/tests/test_mvp_smoke.py \
+         medagent/factory/tests/test_openai_fallback.py \
+         medagent/factory/tests/test_synthlab_wrapper_unit.py
 ```
 
 ## 4) Local single-patient run
@@ -65,20 +66,20 @@ pytest -q medagent_system/factory/tests/test_mvp_smoke.py \
 
 ```bash
 export MEDAGENT_PIPELINE_MODE=mvp
-python3 medagent_system/runtime/run_mvp.py
+python3 medagent/runtime/run_mvp.py
 ```
 
 ### v2 (blackboard 6-agent)
 
 ```bash
 export MEDAGENT_PIPELINE_MODE=v2
-python3 medagent_system/runtime/run_mvp.py
+python3 medagent/runtime/run_mvp.py
 ```
 
 ## 5) BioMCP connectivity check
 
 ```bash
-python3 medagent_system/runtime/check_biomcp_sdk.py \
+python3 medagent/runtime/check_biomcp_sdk.py \
   --intent GENERAL_LITERATURE_SUPPORT \
   --query "BRAF melanoma"
 ```
@@ -86,18 +87,18 @@ python3 medagent_system/runtime/check_biomcp_sdk.py \
 ## 6) Run on cluster (.sbat)
 
 Default script:
-- `medagent_system/runtime/run_medagent.sbat`
+- `medagent/runtime/run_medagent.sbat`
 
 ### v1
 
 ```bash
-sbatch medagent_system/runtime/run_medagent.sbat --mode v1
+sbatch medagent/runtime/run_medagent.sbat --mode v1
 ```
 
 ### v2 + MedGemma + BioMCP SDK + critic + revision loop=2
 
 ```bash
-sbatch medagent_system/runtime/run_medagent.sbat \
+sbatch medagent/runtime/run_medagent.sbat \
   --mode v2 \
   --use-medgemma 1 \
   --hf-home $HOME/.cache/huggingface \
@@ -111,7 +112,7 @@ sbatch medagent_system/runtime/run_medagent.sbat \
 ### v2 multi-patient SynthLab job
 
 ```bash
-sbatch medagent_system/runtime/run_medagent.sbat \
+sbatch medagent/runtime/run_medagent.sbat \
   --mode v2 \
   --use-medgemma 1 \
   --use-biomcp-sdk 1 \
@@ -127,14 +128,14 @@ Slurm logs:
 - `log/medagent_<JOBID>.err`
 
 Run artifacts:
-- `medagent_system/runtime/examples/cluster_runs/<run_id>/final_output.json`
-- `medagent_system/runtime/examples/cluster_runs/<run_id>/logs/agent_outputs.jsonl`
-- `medagent_system/runtime/examples/cluster_runs/<run_id>/logs/agent_comms.jsonl`
+- `medagent/runtime/examples/cluster_runs/<run_id>/final_output.json`
+- `medagent/runtime/examples/cluster_runs/<run_id>/logs/agent_outputs.jsonl`
+- `medagent/runtime/examples/cluster_runs/<run_id>/logs/agent_comms.jsonl`
 
 ## 8) Optional terminal chat with MedGemma
 
 ```bash
-./medagent_system/runtime/chat_medgemma.sh
+./medagent/runtime/chat_medgemma.sh
 ```
 
 ## 9) Troubleshooting

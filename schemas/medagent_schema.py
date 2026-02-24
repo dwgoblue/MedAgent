@@ -1,4 +1,4 @@
-"""Shared schema for SynthLab + medgemma_cup agentic pipeline."""
+"""Shared schema for SynthLab + MedAgent agentic pipeline."""
 
 from __future__ import annotations
 

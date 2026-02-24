@@ -35,5 +35,5 @@ SOAP/problem-list/plan options should summarize verified reasoning, not replace 
 ## Implementation locations
 
 - Control-plane docs: `agentic/`
-- Runtime implementation: `medagent_system/runtime/`
-- Factory workflows/tests/ci: `medagent_system/factory/`
+- Runtime implementation: `medagent/runtime/`
+- Factory workflows/tests/ci: `medagent/factory/`

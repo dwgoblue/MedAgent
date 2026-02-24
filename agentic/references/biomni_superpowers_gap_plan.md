@@ -4,7 +4,7 @@ Date: 2026-02-16
 Inputs:
 - `/home/daweilin/Downloads/aiagents/biomni.pdf` (bioRxiv preprint DOI: 10.1101/2025.05.30.656746, posted 2025-06-02)
 - User-provided Superpowers workflow summary
-- Current MedAgent implementation in `medgemma_cup/agentic/`
+- Current MedAgent implementation in `medagent/runtime/`
 
 ## 1) Biomni workflow digest
 
@@ -125,7 +125,7 @@ Phase 4: Quality gates (medium)
 
 ## 6) Immediate coding priorities (next sprint)
 
-1. Replace `medgemma_cup/tools/biomcp_client.py` stub with actual retrieval calls.
+1. Replace local BioMCP retrieval stubs with actual retrieval calls in runtime retrieval adapters.
 2. Add `EvidencePolicyAgent` to block unsafe unsupported steps.
 3. Add structured `disease_ranking` and `evidence_trace` fields to schema.
 4. Add workflow mode config enforcing draft plan artifact before execution.
