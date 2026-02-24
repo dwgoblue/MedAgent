@@ -695,6 +695,82 @@ def _render_prompt_info(
             st.json(subset)
 
 
+def _aggregate_overview_stats_from_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Build aggregated overview_stats from runs that have overview_stats (for dashboard-only aggregation)."""
+    stats_list = [r.get("overview_stats") for r in rows if isinstance(r.get("overview_stats"), dict) and r.get("overview_stats")]
+    if not stats_list:
+        return {}
+    agg: dict[str, Any] = {}
+    if any("n_visits" in s for s in stats_list):
+        agg["n_visits"] = sum(s.get("n_visits", 0) for s in stats_list)
+    if any("max_age_years" in s for s in stats_list):
+        agg["max_age_years"] = max(s.get("max_age_years", 0) for s in stats_list)
+    if any("age_span_years" in s for s in stats_list):
+        agg["age_span_years"] = max(s.get("age_span_years", 0) for s in stats_list)
+    if any("mean_visit_frequency_per_year" in s for s in stats_list):
+        vals = [s["mean_visit_frequency_per_year"] for s in stats_list if "mean_visit_frequency_per_year" in s]
+        agg["mean_visit_frequency_per_year"] = round(sum(vals) / len(vals), 2) if vals else None
+    if any("conditions_total" in s for s in stats_list):
+        agg["conditions_total"] = sum(s.get("conditions_total", 0) for s in stats_list)
+        agg["conditions_unique"] = sum(s.get("conditions_unique", 0) for s in stats_list)
+    if any("medications_total" in s for s in stats_list):
+        agg["medications_total"] = sum(s.get("medications_total", 0) for s in stats_list)
+        agg["medications_unique"] = sum(s.get("medications_unique", 0) for s in stats_list)
+    if any("procedures_total" in s for s in stats_list):
+        agg["procedures_total"] = sum(s.get("procedures_total", 0) for s in stats_list)
+        agg["procedures_unique"] = sum(s.get("procedures_unique", 0) for s in stats_list)
+    all_ids: dict[str, dict[str, int]] = {}
+    for s in stats_list:
+        for sys_name, counts in (s.get("ids_by_system") or {}).items():
+            all_ids.setdefault(sys_name, {"total": 0, "unique": 0})
+            all_ids[sys_name]["total"] += counts.get("total", 0)
+            all_ids[sys_name]["unique"] += counts.get("unique", 0)
+    if all_ids:
+        agg["ids_by_system"] = dict(sorted(all_ids.items()))
+    return agg
+
+
+def _render_overview_stats(stats: dict[str, Any], key_prefix: str) -> None:
+    """Render overview_stats dict as metrics and ids_by_system table. Only renders if stats is non-empty."""
+    if not stats or not isinstance(stats, dict):
+        return
+    keys = ["n_visits", "max_age_years", "age_span_years", "mean_visit_frequency_per_year"]
+    vals = [(k, stats.get(k)) for k in keys if stats.get(k) is not None]
+    if vals:
+        n = len(vals)
+        cols = st.columns(min(n, 4))
+        for i, (k, v) in enumerate(vals):
+            with cols[i % len(cols)]:
+                label = k.replace("_", " ").title()
+                if k == "n_visits":
+                    label = "Visits"
+                elif k == "max_age_years":
+                    label = "Max age (years)"
+                elif k == "age_span_years":
+                    label = "Age span (years)"
+                elif k == "mean_visit_frequency_per_year":
+                    label = "Mean visit freq. (/year)"
+                st.metric(label, v)
+    c1, c2, c3 = st.columns(3)
+    for col, (label, total_key, unique_key) in zip(
+        [c1, c2, c3],
+        [
+            ("Conditions", "conditions_total", "conditions_unique"),
+            ("Medications", "medications_total", "medications_unique"),
+            ("Procedures", "procedures_total", "procedures_unique"),
+        ],
+    ):
+        if stats.get(total_key) is not None:
+            with col:
+                st.metric(label, f"{stats.get(total_key)} total / {stats.get(unique_key, 0)} unique")
+    ids_by_system = stats.get("ids_by_system")
+    if isinstance(ids_by_system, dict) and ids_by_system:
+        st.caption("IDs by system (total / unique)")
+        for sys_name, counts in ids_by_system.items():
+            if isinstance(counts, dict):
+                st.text(f"  {sys_name}: {counts.get('total', 0)} / {counts.get('unique', 0)}")
+
+
 def _section_header_with_prompts(
     title: str, prompts_used: dict[str, Any], keys: list[str]
 ) -> None:
@@ -978,6 +1054,16 @@ def main() -> None:
             st.caption("This file is a benchmark summary only. For per-patient SOAP/reports, open the run directory's synthlab_output.json or final_output.json.")
         st.write("Modalities:", ", ".join(payload.get("modalities", payload.get("modalities_requested", [])) or []))
         st.write("Patient ID:", row.get("patient_id", "N/A"))
+
+        aggregated = payload.get("overview_stats_aggregated")
+        if not aggregated and rows:
+            aggregated = _aggregate_overview_stats_from_rows(rows)
+        if aggregated:
+            st.subheader("All patients (aggregated)")
+            _render_overview_stats(aggregated, "overview_agg")
+        if row and row.get("overview_stats"):
+            st.subheader("Selected patient")
+            _render_overview_stats(row["overview_stats"], "overview_sel")
 
     with tab_reports:
         if rows:

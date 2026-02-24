@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
 import sys
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -9,6 +11,176 @@ from datetime import datetime, timezone
 UTC = timezone.utc
 from pathlib import Path
 from typing import Any
+
+
+def _parse_date(s: str | None) -> datetime | None:
+    """Parse FHIR-style date string to datetime (UTC). Handles YYYY, YYYY-MM, YYYY-MM-DD and full ISO."""
+    if not s or not isinstance(s, str):
+        return None
+    s = s.strip()
+    if not s:
+        return None
+    try:
+        if len(s) == 4 and s.isdigit():
+            return datetime(int(s), 7, 1, tzinfo=UTC)
+        if len(s) >= 7 and s[4] == "-":
+            year, month = int(s[:4]), int(s[5:7])
+            day = int(s[8:10]) if len(s) >= 10 and s[7] == "-" else 1
+            return datetime(year, month, day, tzinfo=UTC)
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except (ValueError, TypeError):
+        return None
+
+
+def _normalize_code_system(system: str | None) -> str:
+    """Map coding system URI to short display name (e.g. ICD10, SNOMED)."""
+    if not system:
+        return "unknown"
+    s = (system or "").strip().lower()
+    if "icd-10" in s or "icd10" in s:
+        return "ICD10"
+    if "snomed" in s or "snomed.info" in s:
+        return "SNOMED"
+    if "loinc" in s:
+        return "LOINC"
+    if "rxnorm" in s:
+        return "RxNorm"
+    if "cpt" in s or "ama" in s:
+        return "CPT"
+    if "hcpcs" in s:
+        return "HCPCS"
+    if "ndc" in s:
+        return "NDC"
+    if "ucum" in s:
+        return "UCUM"
+    # Fallback: use last path segment or up to 20 chars
+    m = re.search(r"([a-z0-9_-]+)$", s)
+    return (m.group(1).upper() if m else s[:20]) or "other"
+
+
+def _ids_from_items(items: list[dict]) -> tuple[int, int, dict[str, dict[str, int]]]:
+    """From list of dicts with code/system, return (total, unique_count, ids_by_system)."""
+    total = len(items)
+    seen: set[tuple[str, str]] = set()
+    by_system: dict[str, set[str]] = {}
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        code = str(it.get("code") or "").strip()
+        system = _normalize_code_system(it.get("system"))
+        if code or system != "unknown":
+            key = (code or "(no code)", system)
+            seen.add(key)
+            by_system.setdefault(system, set()).add(code or "(no code)")
+    ids_by_system = {
+        sys_name: {"total": len(codes), "unique": len(codes)}
+        for sys_name, codes in sorted(by_system.items())
+    }
+    return total, len(seen), ids_by_system
+
+
+def _compute_overview_stats(patient: Any) -> dict[str, Any]:
+    """
+    Compute overview stats from a SynthLab patient for dashboard.
+    Returns dict with n_visits, max_age, age_span, mean_visit_frequency_per_year,
+    conditions_total, conditions_unique, medications_total, medications_unique,
+    procedures_total, procedures_unique, ids_by_system (per-system total/unique).
+    Only includes keys for which data is available.
+    """
+    out: dict[str, Any] = {}
+    encounters = patient.get_encounters() if hasattr(patient, "get_encounters") else []
+    n_visits = len(encounters) if encounters else 0
+    if n_visits > 0:
+        out["n_visits"] = n_visits
+
+    birth_dt = None
+    if hasattr(patient, "get_demographics"):
+        demo = patient.get_demographics()
+        if isinstance(demo, dict) and demo.get("birth_date"):
+            birth_dt = _parse_date(demo["birth_date"])
+
+    visit_dates: list[datetime] = []
+    for enc in encounters or []:
+        if isinstance(enc, dict):
+            start = enc.get("start") or enc.get("end")
+            dt = _parse_date(start)
+            if dt:
+                visit_dates.append(dt)
+    if birth_dt and visit_dates:
+        ages = [(d - birth_dt).days / 365.25 for d in visit_dates]
+        max_age = max(ages)
+        min_age = min(ages)
+        out["max_age_years"] = round(max_age, 2)
+        out["age_span_years"] = round(max_age - min_age, 2)
+        span_years = (max(visit_dates) - min(visit_dates)).days / 365.25 if len(visit_dates) > 1 else 1.0
+        if span_years > 0:
+            out["mean_visit_frequency_per_year"] = round(n_visits / span_years, 2)
+
+    conditions = patient.get_conditions() if hasattr(patient, "get_conditions") else []
+    meds = patient.get_medications() if hasattr(patient, "get_medications") else []
+    procs = patient.get_procedures() if hasattr(patient, "get_procedures") else []
+
+    c_tot, c_uni, c_by_sys = _ids_from_items(conditions)
+    if c_tot > 0:
+        out["conditions_total"] = c_tot
+        out["conditions_unique"] = c_uni
+    m_tot, m_uni, m_by_sys = _ids_from_items(meds)
+    if m_tot > 0:
+        out["medications_total"] = m_tot
+        out["medications_unique"] = m_uni
+    p_tot, p_uni, p_by_sys = _ids_from_items(procs)
+    if p_tot > 0:
+        out["procedures_total"] = p_tot
+        out["procedures_unique"] = p_uni
+
+    all_systems: dict[str, dict[str, int]] = {}
+    for d in (c_by_sys, m_by_sys, p_by_sys):
+        for sys_name, counts in d.items():
+            if sys_name not in all_systems:
+                all_systems[sys_name] = {"total": 0, "unique": 0}
+            all_systems[sys_name]["total"] += counts["total"]
+            all_systems[sys_name]["unique"] += counts["unique"]
+    if all_systems:
+        out["ids_by_system"] = dict(sorted(all_systems.items()))
+    return out
+
+
+def _aggregate_overview_stats(runs: list[dict[str, Any]]) -> dict[str, Any]:
+    """Aggregate overview_stats from multiple runs for 'All patients' summary."""
+    if not runs:
+        return {}
+    stats_list = [r.get("overview_stats") for r in runs if isinstance(r.get("overview_stats"), dict)]
+    if not stats_list:
+        return {}
+    agg: dict[str, Any] = {}
+    if any("n_visits" in s for s in stats_list):
+        agg["n_visits"] = sum(s.get("n_visits", 0) for s in stats_list)
+    if any("max_age_years" in s for s in stats_list):
+        agg["max_age_years"] = max(s.get("max_age_years", 0) for s in stats_list)
+    if any("age_span_years" in s for s in stats_list):
+        agg["age_span_years"] = max(s.get("age_span_years", 0) for s in stats_list)
+    if any("mean_visit_frequency_per_year" in s for s in stats_list):
+        vals = [s["mean_visit_frequency_per_year"] for s in stats_list if "mean_visit_frequency_per_year" in s]
+        agg["mean_visit_frequency_per_year"] = round(sum(vals) / len(vals), 2) if vals else None
+    if any("conditions_total" in s for s in stats_list):
+        agg["conditions_total"] = sum(s.get("conditions_total", 0) for s in stats_list)
+        agg["conditions_unique"] = sum(s.get("conditions_unique", 0) for s in stats_list)
+    if any("medications_total" in s for s in stats_list):
+        agg["medications_total"] = sum(s.get("medications_total", 0) for s in stats_list)
+        agg["medications_unique"] = sum(s.get("medications_unique", 0) for s in stats_list)
+    if any("procedures_total" in s for s in stats_list):
+        agg["procedures_total"] = sum(s.get("procedures_total", 0) for s in stats_list)
+        agg["procedures_unique"] = sum(s.get("procedures_unique", 0) for s in stats_list)
+    all_ids: dict[str, dict[str, int]] = {}
+    for s in stats_list:
+        for sys_name, counts in (s.get("ids_by_system") or {}).items():
+            all_ids.setdefault(sys_name, {"total": 0, "unique": 0})
+            all_ids[sys_name]["total"] += counts.get("total", 0)
+            all_ids[sys_name]["unique"] += counts.get("unique", 0)
+    if all_ids:
+        agg["ids_by_system"] = dict(sorted(all_ids.items()))
+    return agg
+
 
 try:
     from tqdm import tqdm
@@ -44,6 +216,100 @@ def _import_synthlab() -> Any:
             "Ensure synthlab package is installed or /synthlab repo path is available."
         )
     return sl
+
+
+def _check_synthlab_soap_deps() -> str | None:
+    """Verify transformers and torch are importable in this process. Returns None if OK, else error message."""
+    try:
+        import torch  # noqa: F401
+    except ImportError as e:
+        return f"torch not available in this process: {e}. Install with: pip install torch"
+    try:
+        from transformers import AutoProcessor  # noqa: F401
+    except ImportError as e:
+        err = str(e)
+        if "Could not import module" in err or "requirements defined correctly" in err:
+            cause_str = ""
+            c = e.__cause__
+            while c:
+                cause_str += " " + str(c)
+                c = getattr(c, "__cause__", None)
+            if "torchvision::nms" in cause_str or "operator torchvision" in cause_str:
+                return (
+                    "AutoProcessor failed: torch and torchvision are out of sync (e.g. operator torchvision::nms does not exist). "
+                    "Reinstall a matching pair in this env: pip install --upgrade torch torchvision (or install both from the same index, e.g. PyTorch CUDA page). "
+                    "Script Python: " + sys.executable + "."
+                )
+            return (
+                "transformers is installed but AutoProcessor could not be loaded in this process. "
+                "This script is using: " + sys.executable + ". "
+                "If pip shows transformers[vision] already satisfied, you are likely using a different Python when running the script. "
+                "Run the script with the same interpreter (e.g. conda activate medagent then run), or verify with: "
+                + sys.executable + " -c \"from transformers import AutoProcessor\" to see the full error. "
+                "Otherwise try: pip install 'transformers[vision]' pillow (and torch) in the env of " + sys.executable + "."
+            )
+        return (
+            f"transformers not available in this process: {e}. "
+            "Install with: pip install 'transformers>=4.50.0'. "
+            "Run this script with the same Python that has these packages (e.g. conda activate medagent)."
+        )
+    return None
+
+
+def _synthlab_soap_text(patient: Any) -> tuple[str | None, str | None, dict[str, Any], str | None]:
+    """
+    Generate a full, structured SOAP note using SynthLab's SOAPNoteGenerator (same as the
+    original SynthLab agentic pipeline). Returns (soap_text, causal_graph, prompts_used, None) on success,
+    (None, None, {}, error_message) on failure. Causal graph is omitted from soap_text and
+    should be shown in the dashboard Knowledge Graph section. prompts_used is the note's prompts dict for the dashboard.
+    """
+    dep_err = _check_synthlab_soap_deps()
+    if dep_err:
+        return None, None, {}, dep_err
+    _import_synthlab()
+    try:
+        from synthlab.soap import generate_soap_note
+    except ImportError as e:
+        return None, None, {}, f"cannot import synthlab.soap: {e}"
+    try:
+        # separate_causal_graph=True so causal graph is generated in a separate step, not in the Patient Story
+        note = generate_soap_note(
+            patient,
+            include_imaging=os.getenv("MEDAGENT_SYNTHLAB_SOAP_IMAGING", "1") == "1",
+            use_biomcp=os.getenv("MEDAGENT_SYNTHLAB_SOAP_BIOMCP", "0") == "1",
+            verbose=False,
+            separate_causal_graph=True,
+            only_abnormal_labs=True,
+        )
+    except Exception as e:
+        err_str = str(e)
+        if "or_mask_function" in err_str or "and_mask_function" in err_str or "require torch>=2.6" in err_str:
+            err_str += " → Upgrade PyTorch: pip install 'torch>=2.6'"
+        if "Missing required dependencies" in err_str and "Details:" not in err_str:
+            err_str += " (pre-check passed in this process; see SynthLab logs or install deps in the same env and re-run)"
+        return None, None, {}, f"generate_soap_note failed: {err_str}"
+    if note is None:
+        return None, None, {}, "generate_soap_note returned None"
+    lines: list[str] = []
+    if getattr(note, "summary", "").strip():
+        lines.append("## Summary\n" + (note.summary or "").strip() + "\n")
+    if getattr(note, "patient_story", "").strip():
+        lines.append("## Patient Story\n" + (note.patient_story or "").strip() + "\n")
+    lines.append("## Subjective\n" + (getattr(note, "subjective", "") or "(No data)").strip() + "\n")
+    lines.append("## Objective\n" + (getattr(note, "objective", "") or "(No data)").strip() + "\n")
+    lines.append("## Assessment\n" + (getattr(note, "assessment", "") or "(No data)").strip() + "\n")
+    lines.append("## Plan\n" + (getattr(note, "plan", "") or "(No data)").strip() + "\n")
+    # Causal graph is not included in SOAP note text; it is shown in the dashboard Knowledge Graph section.
+    if getattr(note, "future_considerations", "").strip():
+        lines.append("## Future Considerations\n" + (note.future_considerations or "").strip() + "\n")
+    if getattr(note, "genetic_summary", "").strip():
+        lines.append("## Genetic Summary\n" + (note.genetic_summary or "").strip() + "\n")
+    text = "\n".join(lines) if lines else None
+    causal_graph = (getattr(note, "causal_graph", "") or "").strip() or None
+    prompts_used = getattr(note, "prompts_used", None) or {}
+    if not isinstance(prompts_used, dict):
+        prompts_used = {}
+    return (text, causal_graph, prompts_used, None) if text else (None, None, {}, "SOAP note had no content")
 
 
 def _extract_outcome_from_fhir(patient: Any) -> str:
@@ -153,6 +419,7 @@ def _patient_to_cpb(patient: Any) -> tuple[CPB, dict[str, Any]]:
 
     conditions = patient.get_conditions() if hasattr(patient, "get_conditions") else []
     meds = patient.get_medications() if hasattr(patient, "get_medications") else []
+    procedures = patient.get_procedures() if hasattr(patient, "get_procedures") else []
 
     event = TimelineEvent(
         t=timestamp,
@@ -164,7 +431,7 @@ def _patient_to_cpb(patient: Any) -> tuple[CPB, dict[str, Any]]:
             "vitals": [],
             "labs": [],
             "allergies": [],
-            "procedures": [],
+            "procedures": procedures,
         },
         imaging=imaging,
         genomics=Genomics(
@@ -301,16 +568,69 @@ def _evaluate_run(output: FinalOutput) -> dict[str, Any]:
     }
 
 
-def run_patient_case(patient: Any, *, engine: Any, kg_backend: str = "dashboard") -> dict[str, Any]:
+def run_patient_case(
+    patient: Any,
+    *,
+    engine: Any,
+    kg_backend: str = "dashboard",
+    use_synthlab_soap: bool | None = None,
+) -> dict[str, Any]:
+    if use_synthlab_soap is None:
+        use_synthlab_soap = os.getenv("MEDAGENT_USE_SYNTHLAB_SOAP", "0") == "1"
     cpb, patient_meta = _patient_to_cpb(patient)
     final = engine.run(cpb)
+    result = asdict(final)
+    causal_graph: str | None = None
+    if use_synthlab_soap:
+        soap_str, causal_graph, synthlab_prompts, soap_err = _synthlab_soap_text(patient)
+        if soap_str:
+            result["soap_final"] = soap_str
+            prov = result.get("provenance")
+            if isinstance(prov, dict):
+                prov["soap_source"] = "synthlab_generator"
+            if synthlab_prompts and isinstance(prov, dict):
+                bb = prov.get("blackboard")
+                if isinstance(bb, dict):
+                    pu = bb.get("prompts_used")
+                    if not isinstance(pu, dict):
+                        pu = {}
+                    for k, v in synthlab_prompts.items():
+                        # Ensure every prompt has both system and user keys for dashboard
+                        if isinstance(v, dict):
+                            pu["synthlab_" + str(k)] = {
+                                "system": v.get("system", "") or "",
+                                "user": v.get("user", v.get("prompt", "")) or "",
+                            }
+                        else:
+                            pu["synthlab_" + str(k)] = {"system": "", "user": str(v)}
+                    bb["prompts_used"] = pu
+                    prov["blackboard"] = bb
+                    result["provenance"] = prov
+        else:
+            import sys
+            reason = f" ({soap_err})" if soap_err else ""
+            print(
+                f"[MedAgent] --use-synthlab-soap was set but SynthLab SOAP returned nothing{reason}; using pipeline SOAP.",
+                file=sys.stderr,
+            )
     run_eval = _evaluate_run(final)
     kg = build_kg_artifact(patient_id=cpb.patient_id, output=final, kg_backend=kg_backend)
+    # Persist SynthLab knowledge graph in JSON output: raw causal graph text and optional structured form
+    if causal_graph:
+        kg["causal_graph"] = causal_graph
+        try:
+            sl = _import_synthlab()
+            parsed = sl.parse_causal_graph(causal_graph)
+            kg["synthlab_causal_graph"] = parsed.to_dict()
+        except Exception:
+            pass  # keep raw text; structured form is optional
+    overview_stats = _compute_overview_stats(patient)
     return {
         "patient_id": cpb.patient_id,
         "patient_meta": patient_meta,
+        "overview_stats": overview_stats if overview_stats else None,
         "evaluation": run_eval,
-        "result": asdict(final),
+        "result": result,
         "kg": kg,
     }
 
@@ -321,7 +641,10 @@ def run_from_synthlab(
     output_path: Path | None = None,
     download_if_missing: bool = False,
     kg_backend: str = "dashboard",
+    use_synthlab_soap: bool | None = None,
 ) -> dict[str, Any]:
+    if use_synthlab_soap is None:
+        use_synthlab_soap = os.getenv("MEDAGENT_USE_SYNTHLAB_SOAP", "0") == "1"
     sl = _import_synthlab()
 
     if modalities is None:
@@ -349,7 +672,14 @@ def run_from_synthlab(
     runs: list[dict[str, Any]] = []
     patients_iter = tqdm(dataset, desc="Patients", unit="patient") if tqdm else dataset
     for patient in patients_iter:
-        runs.append(run_patient_case(patient, engine=engine, kg_backend=kg_backend))
+        runs.append(
+            run_patient_case(
+                patient,
+                engine=engine,
+                kg_backend=kg_backend,
+                use_synthlab_soap=use_synthlab_soap,
+            )
+        )
 
     summary = {
         "n_runs": len(runs),
@@ -363,6 +693,9 @@ def run_from_synthlab(
         ),
     }
 
+    runs_with_stats = [r for r in runs if isinstance(r.get("overview_stats"), dict) and r["overview_stats"]]
+    overview_stats_aggregated = _aggregate_overview_stats(runs_with_stats) if runs_with_stats else None
+
     payload = {
         "generated_at": datetime.now(UTC).isoformat(),
         "modalities": modalities,
@@ -370,9 +703,12 @@ def run_from_synthlab(
         "summary": summary,
         "runs": runs,
     }
+    if overview_stats_aggregated:
+        payload["overview_stats_aggregated"] = overview_stats_aggregated
 
     if output_path is not None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
+        # Full payload is written: each run includes result, evaluation, and kg (SynthLab KG in kg["causal_graph"] and optionally kg["synthlab_causal_graph"])
         output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     return payload
@@ -384,6 +720,20 @@ def main() -> None:
     parser.add_argument("--modalities", type=str, default="fhir,genomics,notes,dicom")
     parser.add_argument("--download-if-missing", action="store_true")
     parser.add_argument("--kg-backend", type=str, choices=["dashboard", "synthlab_notebook"], default="dashboard")
+    def _parse_use_synthlab_soap(s: str | None) -> bool:
+        if s is None or s == "":
+            return True
+        return str(s).strip().lower() not in ("0", "false", "no")
+
+    parser.add_argument(
+        "--use-synthlab-soap",
+        nargs="?",
+        const=True,
+        default=False,
+        type=lambda x: _parse_use_synthlab_soap(x) if x is not None else True,
+        metavar="0|1",
+        help="Use SynthLab SOAPNoteGenerator for full structured SOAP (same as original SynthLab pipeline). Pass --use-synthlab-soap or --use-synthlab-soap 1.",
+    )
     parser.add_argument(
         "--output",
         type=str,
@@ -398,6 +748,7 @@ def main() -> None:
         output_path=Path(args.output),
         download_if_missing=args.download_if_missing,
         kg_backend=args.kg_backend,
+        use_synthlab_soap=args.use_synthlab_soap,
     )
     print(json.dumps(result["summary"], indent=2))
     print(f"Saved full output to: {args.output}")
