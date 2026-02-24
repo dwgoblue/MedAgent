@@ -299,12 +299,16 @@ async def _query_biomcp_module_api_debug(
 
 
 async def _query_biomcp_async_debug(intent: str, query: str, max_results: int) -> tuple[list[CitationRecord], BioMCPSDKDebug]:
+    # Prefer module-level API (biomcp.articles.search.search_articles etc.); installed package often does not export BioMCPClient.
+    rows, dbg = await _query_biomcp_module_api_debug(intent=intent, query=query, max_results=max_results)
+    if dbg.ok:
+        return rows, dbg
+
+    # Fallback: try BioMCPClient if the package exposes it (e.g. alternate install).
     try:
         from biomcp import BioMCPClient
-    except Exception as exc:
-        # Installed biomcp package may expose module-level APIs instead.
-        rows, dbg = await _query_biomcp_module_api_debug(intent=intent, query=query, max_results=max_results)
-        dbg.errors.insert(0, f"BioMCPClient unavailable: {type(exc).__name__}: {exc}")
+    except Exception:
+        # No client in this package; return module-API result (may have partial errors).
         return rows, dbg
 
     genes = _extract_genes(query)
