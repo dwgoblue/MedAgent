@@ -269,8 +269,11 @@ Open:
 
 ## 10) Troubleshooting
 
+- **NumPy / faiss error** (`A module that was compiled using NumPy 1.x cannot be run in NumPy 2.x` or `_ARRAY_API not found`):
+  faiss-gpu is built for NumPy 1.x. Pin NumPy in the env: `pip install 'numpy>=1.26,<2'` (or recreate the env from `environment.yml`, which now pins `numpy<2`).
 - `FileNotFoundError: ~/.cache/synthlab/coherent`:
-  use `--synthlab-download-if-missing 1` in `.sbat` or pre-download coherent dataset.
+  use `--synthlab-download-if-missing 1` in the runner or pre-download coherent dataset.
+- **SynthLab S3 "No files found for fhir/genomics/..."**: listing the coherent bucket can return empty; if data is already in `~/.cache/synthlab/coherent`, the run uses the cache and can still complete.
 - BioMCP returns empty results:
   run `check_biomcp_sdk.py` first and inspect `debug` block.
 - MedGemma fallback used:

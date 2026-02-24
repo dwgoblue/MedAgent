@@ -19,6 +19,7 @@ dependencies:
   - ipywidgets
   - pytest
   - streamlit
+  - numpy>=1.26,<2
   - faiss-gpu>=1.7.0
   - pip:
       - pooch>=1.6.0
