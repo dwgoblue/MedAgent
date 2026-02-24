@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-02-24T04:41:16.182263+00:00",
+  "n_patients": 5,
+  "modalities_requested": [
+    "fhir",
+    "genomics",
+    "notes",
+    "dicom"
+  ],
+  "kg_backend": "dashboard",
+  "modality_presence_counts": {
+    "fhir": 5,
+    "dicom": 2,
+    "genomics": 3
+  },
+  "label_coverage_rate": 1.0,
+  "prediction_coverage_rate": 1.0,
+  "top1_accuracy": 0.0,
+  "top3_recall": 0.0,
+  "macro_f1": 0.0,
+  "micro_f1": 0.0,
+  "verified_top1_accuracy": 0.0,
+  "biomcp_pass_rate": 0.0,
+  "biomcp_weak_rate": 0.0,
+  "biomcp_fail_rate": 1.0,
+  "biomcp_not_run_rate": 0.0,
+  "paths": {
+    "per_patient": "medagent/runtime/examples/cluster_runs/local_v2_20260223_233522/benchmark/benchmark_per_patient.jsonl",
+    "summary": "medagent/runtime/examples/cluster_runs/local_v2_20260223_233522/benchmark/benchmark_summary.json"
+  }
+}

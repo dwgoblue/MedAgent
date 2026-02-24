@@ -273,7 +273,9 @@ Open:
   faiss-gpu is built for NumPy 1.x. Pin NumPy in the env: `pip install 'numpy>=1.26,<2'` (or recreate the env from `environment.yml`, which now pins `numpy<2`).
 - `FileNotFoundError: ~/.cache/synthlab/coherent`:
   use `--synthlab-download-if-missing 1` in the runner or pre-download coherent dataset.
-- **SynthLab S3 "No files found for fhir/genomics/..."**: listing the coherent bucket can return empty; if data is already in `~/.cache/synthlab/coherent`, the run uses the cache and can still complete.
+- **SynthLab S3 "No files found for fhir/genomics/..."**: S3 listing often returns empty from restricted networks (firewalls, VPNs, clusters). **Workaround**: download the full zip from a machine with S3 access, then unzip into the cache:
+  `aws s3 cp --no-sign-request s3://synthea-open-data/coherent/coherent-11-07-2022.zip . && unzip coherent-11-07-2022.zip && mv coherent/unzipped/* ~/.cache/synthlab/coherent/`
+  If data is already in `~/.cache/synthlab/coherent`, the run uses the cache and can still complete.
 - BioMCP returns empty results:
   run `check_biomcp_sdk.py` first and inspect `debug` block.
 - MedGemma fallback used:

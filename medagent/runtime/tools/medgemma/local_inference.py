@@ -66,6 +66,9 @@ class LocalMedGemmaClient:
             "local_files_only": self.config.use_local_files_only,
         }
         self._processor = AutoProcessor.from_pretrained(self.config.model_ref, **kwargs)
+        tokenizer = getattr(self._processor, "tokenizer", None)
+        if tokenizer is not None and getattr(tokenizer, "pad_token_id", None) is None:
+            tokenizer.pad_token_id = getattr(tokenizer, "eos_token_id", 1)
 
         model_kwargs: dict[str, Any] = {
             "dtype": dtype,
@@ -84,6 +87,11 @@ class LocalMedGemmaClient:
                 self._model = self._model.to("cuda")
 
         self._model.eval()
+        if hasattr(self._model, "generation_config") and self._model.generation_config is not None:
+            if getattr(self._model.generation_config, "pad_token_id", None) is None:
+                self._model.generation_config.pad_token_id = getattr(
+                    self._model.generation_config, "eos_token_id", 1
+                )
 
     def _format_messages(self, messages: list[dict[str, str]]) -> list[dict[str, Any]]:
         formatted: list[dict[str, Any]] = []
@@ -143,6 +151,7 @@ class LocalMedGemmaClient:
         if self._target_device == "cuda" and self._torch.cuda.is_available():
             inputs = {k: v.to("cuda") for k, v in inputs.items()}
 
+        pad_id = self._get_pad_token_id()
         with self._torch.inference_mode():
             generated_ids = self._model.generate(
                 **inputs,
@@ -150,11 +159,27 @@ class LocalMedGemmaClient:
                 do_sample=True,
                 temperature=self.config.temperature,
                 repetition_penalty=1.05,
+                pad_token_id=pad_id,
             )
 
         input_len = inputs["input_ids"].shape[-1]
         output_tokens = generated_ids[0][input_len:]
         return self._processor.decode(output_tokens, skip_special_tokens=True).strip()
+
+    def _get_pad_token_id(self) -> int:
+        """Return pad_token_id for generate() to avoid per-call warnings."""
+        if self._processor is None:
+            return 1
+        tok = getattr(self._processor, "tokenizer", None)
+        if tok is not None and getattr(tok, "pad_token_id", None) is not None:
+            return tok.pad_token_id
+        if tok is not None and getattr(tok, "eos_token_id", None) is not None:
+            return tok.eos_token_id
+        if self._model is not None and hasattr(self._model, "generation_config") and self._model.generation_config is not None:
+            return getattr(self._model.generation_config, "pad_token_id", 1) or getattr(
+                self._model.generation_config, "eos_token_id", 1
+            )
+        return 1
 
     def generate_text(self, prompt: str, system_prompt: str | None = None, max_new_tokens: int | None = None) -> str:
         messages: list[dict[str, str]] = []
@@ -199,6 +224,7 @@ class LocalMedGemmaClient:
         if self._target_device == "cuda" and self._torch.cuda.is_available():
             inputs = {k: v.to("cuda") for k, v in inputs.items()}
 
+        pad_id = self._get_pad_token_id()
         with self._torch.inference_mode():
             generated_ids = self._model.generate(
                 **inputs,
@@ -206,6 +232,7 @@ class LocalMedGemmaClient:
                 do_sample=True,
                 temperature=self.config.temperature,
                 repetition_penalty=1.05,
+                pad_token_id=pad_id,
             )
 
         input_len = inputs["input_ids"].shape[-1]

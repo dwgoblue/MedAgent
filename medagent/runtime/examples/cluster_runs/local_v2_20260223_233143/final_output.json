@@ -1,0 +1,696 @@
+{
+  "soap_final": "S: Patient reports intermittent chest pain and shortness of breath with exertion over 2 weeks.\nO: CT | chest | Mild bibasilar atelectatic change. No focal consolidation.; Chest pain documented in recent EHR narrative; Dyspnea/shortness of breath documented; Labs available: 1; Vitals available: 1\nA: Possible acute coronary syndrome (hypothesis); Possible cardiopulmonary decompensation (hypothesis); Genotype interpretation included as supporting evidence only; Verifier-requested updates addressed\nP: Correlate symptoms with objective findings and timeline; Prioritize evidence-backed differential items; Collect missing objective data for unresolved uncertainty; Apply verifier patch list before release; Keep genotype-dependent recommendations caveated",
+  "problem_list_ranked": [
+    "Possible acute coronary syndrome (hypothesis)",
+    "Possible cardiopulmonary decompensation (hypothesis)"
+  ],
+  "plan_options_ranked_non_prescriptive": [
+    "Prioritize evidence-backed differential items",
+    "Collect targeted objective diagnostics",
+    "Reassess with reconciled cross-modal timeline"
+  ],
+  "evidence_table": [
+    {
+      "claim_id": "CLM-0001",
+      "claim_text": "Differential includes: Possible acute coronary syndrome (hypothesis)",
+      "category": "inferred",
+      "must_verify": true,
+      "status": "pass",
+      "evidence_ids": [
+        "medgemma_report"
+      ],
+      "resolution": "Differential item derived from integrated EHR+image narrative"
+    },
+    {
+      "claim_id": "CLM-0002",
+      "claim_text": "Differential includes: Possible cardiopulmonary decompensation (hypothesis)",
+      "category": "inferred",
+      "must_verify": true,
+      "status": "pass",
+      "evidence_ids": [
+        "medgemma_report"
+      ],
+      "resolution": "Differential item derived from integrated EHR+image narrative"
+    },
+    {
+      "claim_id": "CLM-0003",
+      "claim_text": "Objective summary: CT | chest | Mild bibasilar atelectatic change. No focal consolidation.; Chest pain documented in recent EHR narrative; Dyspnea/shortness of breath documented; Labs available: 1; Vitals available: 1",
+      "category": "observed",
+      "must_verify": false,
+      "status": "pass",
+      "evidence_ids": [
+        "patient_summary"
+      ],
+      "resolution": "Objective section maps directly to extracted observations"
+    },
+    {
+      "claim_id": "CLM-0004",
+      "claim_text": "Recommended action: Correlate symptoms with objective findings and timeline",
+      "category": "recommended",
+      "must_verify": true,
+      "status": "pass",
+      "evidence_ids": [
+        "biomcp-gene_disease_association-1",
+        "biomcp-gene_disease_association-1"
+      ],
+      "resolution": "Plan recommendation from supervisor synthesis"
+    },
+    {
+      "claim_id": "CLM-0005",
+      "claim_text": "Recommended action: Prioritize evidence-backed differential items",
+      "category": "recommended",
+      "must_verify": true,
+      "status": "pass",
+      "evidence_ids": [
+        "biomcp-gene_disease_association-1",
+        "biomcp-gene_disease_association-1"
+      ],
+      "resolution": "Plan recommendation from supervisor synthesis"
+    },
+    {
+      "claim_id": "CLM-0006",
+      "claim_text": "Recommended action: Collect missing objective data for unresolved uncertainty",
+      "category": "recommended",
+      "must_verify": true,
+      "status": "pass",
+      "evidence_ids": [
+        "biomcp-gene_disease_association-1",
+        "biomcp-gene_disease_association-1"
+      ],
+      "resolution": "Plan recommendation from supervisor synthesis"
+    },
+    {
+      "claim_id": "CLM-0007",
+      "claim_text": "Recommended action: Apply verifier patch list before release",
+      "category": "recommended",
+      "must_verify": true,
+      "status": "pass",
+      "evidence_ids": [
+        "biomcp-gene_disease_association-1",
+        "biomcp-gene_disease_association-1"
+      ],
+      "resolution": "Plan recommendation from supervisor synthesis"
+    },
+    {
+      "claim_id": "CLM-0008",
+      "claim_text": "Recommended action: Keep genotype-dependent recommendations caveated",
+      "category": "recommended",
+      "must_verify": true,
+      "status": "pass",
+      "evidence_ids": [
+        "biomcp-gene_disease_association-1",
+        "biomcp-gene_disease_association-1"
+      ],
+      "resolution": "Plan recommendation from supervisor synthesis"
+    }
+  ],
+  "sensitivity_map": [
+    {
+      "problem": "Possible acute coronary syndrome (hypothesis)",
+      "sensitivity_class": "medium",
+      "fragile_on": [
+        "single-modality evidence"
+      ]
+    },
+    {
+      "problem": "Possible cardiopulmonary decompensation (hypothesis)",
+      "sensitivity_class": "medium",
+      "fragile_on": [
+        "single-modality evidence"
+      ]
+    }
+  ],
+  "uncertainty_and_escalation_guidance": "Escalate when evidence remains weak for high-impact recommendations. Escalation to medical doctors is required.",
+  "provenance": {
+    "patient_id": "synthetic-0001",
+    "generated_at": "2026-02-24T04:31:59.871895+00:00",
+    "pipeline": "medagent_v2_blackboard",
+    "tooling": {
+      "medgemma": "v2-reporter-medgemma-local",
+      "biomcp": "v2-policy-biomcp-sdk-strict-no-fallback",
+      "verifier": "v2-rules-only",
+      "critic_enabled": true,
+      "causal_postcheck": true
+    },
+    "blackboard": {
+      "patient_id": "synthetic-0001",
+      "revision_id": 2,
+      "patient_summary": {
+        "timeline": [
+          {
+            "t": "2026-01-12T10:15:00Z",
+            "encounter_type": "outpatient",
+            "ehr_excerpt": "Patient reports intermittent chest pain and shortness of breath with exertion over 2 weeks.",
+            "imaging_count": 1,
+            "variant_count": 1
+          }
+        ],
+        "key_vitals": [
+          {
+            "name": "heart_rate",
+            "value": 102
+          }
+        ],
+        "key_labs": [
+          {
+            "name": "troponin",
+            "value": "borderline"
+          }
+        ],
+        "phenotype_keywords": [
+          "chest pain",
+          "shortness of breath"
+        ]
+      },
+      "medgemma_report": {
+        "findings": [
+          "Patient reports intermittent chest pain and shortness of breath with exertion over 2 weeks."
+        ],
+        "candidate_assessments": [
+          "Possible acute coronary syndrome (hypothesis)",
+          "Possible cardiopulmonary decompensation (hypothesis)"
+        ],
+        "supporting_observations": [
+          "CT | chest | Mild bibasilar atelectatic change. No focal consolidation.",
+          "Chest pain documented in recent EHR narrative",
+          "Dyspnea/shortness of breath documented"
+        ],
+        "notes": [
+          "Revision focus applied: High-stakes narrative requires stronger objective grounding and explicit negatives.",
+          "No genotype assertions included by reporter policy",
+          "No literature-based assertions included by reporter policy",
+          "MedGemma enabled but inference fallback was applied"
+        ]
+      },
+      "genotype_report": {
+        "interpretations": [
+          "Variant hypothesis: AGT, c.803T>C, heterozygous (Medium confidence)",
+          "Evidence summaries: biomcp: # Record 1\nPmid: 39962183\nPmcid: PMC11832766\nTitle:\n  Association between ACTN3 (R577X), BDKRB2 (-9/+9) and AGT (M235T)\n  polymorphisms and physical performance"
+        ],
+        "hypotheses": [
+          {
+            "hypothesis": "AGT, c.803T>C, heterozygous may contribute to clinical phenotype",
+            "phenotype_links": [
+              "chest pain",
+              "shortness of breath"
+            ],
+            "evidence_strength": "Medium",
+            "caveats": [
+              "Genotype findings are supportive and must be integrated with phenotype and imaging",
+              "Insufficient evidence remains possible and should be explicitly reported",
+              "Revision focus addressed: High-stakes claim requires stronger genotype/literature support or confidence downgrade."
+            ],
+            "evidence_items": [
+              {
+                "source_type": "literature",
+                "source_id": "biomcp-gene_disease_association-1",
+                "quote_or_summary": "# Record 1\nPmid: 39962183\nPmcid: PMC11832766\nTitle:\n  Association between ACTN3 (R577X), BDKRB2 (-9/+9) and AGT (M235T)\n  polymorphisms and physical performance in Brazilian junior handball\n  players\nJournal: Sci Rep\nDate: 2025-02-17T00:00:00Z\nDoi: 10.1038/s41598-025-90684-y\nAbstract:\n  Team handball performance relies on physical and technical abilities,\n  influenced by environmental and genetic factors. Variants in ACTN3 R577X\n  (rs1815739), BDKRB2 -9/+9 (rs5810761), and AGT Met235Thr (rs699) genes\n  are associated with athletic performance, but their relevance in\n  handball remains unclear. Therefore, this study aimed to investigate the\n  association of these polymorphisms with physical p",
+                "method": "qual",
+                "strength_level": "moderate"
+              }
+            ]
+          }
+        ],
+        "actionability_caveats": [
+          "No therapeutic action should be based on genotype alone",
+          "Conflict across sources should downgrade confidence"
+        ],
+        "biomcp_query_count": 1,
+        "biomcp_empty_count": 0
+      },
+      "draft_soap": {
+        "subjective": "Patient reports intermittent chest pain and shortness of breath with exertion over 2 weeks.",
+        "objective": "CT | chest | Mild bibasilar atelectatic change. No focal consolidation.; Chest pain documented in recent EHR narrative; Dyspnea/shortness of breath documented; Labs available: 1; Vitals available: 1",
+        "assessment": "Possible acute coronary syndrome (hypothesis); Possible cardiopulmonary decompensation (hypothesis); Genotype interpretation included as supporting evidence only; Verifier-requested updates addressed",
+        "plan": "Correlate symptoms with objective findings and timeline; Prioritize evidence-backed differential items; Collect missing objective data for unresolved uncertainty; Apply verifier patch list before release; Keep genotype-dependent recommendations caveated",
+        "differential_ranked": [
+          "Possible acute coronary syndrome (hypothesis)",
+          "Possible cardiopulmonary decompensation (hypothesis)"
+        ],
+        "open_questions": [
+          "What key negatives are still missing?",
+          "Any temporal mismatch between symptoms and imaging findings?",
+          "Any high-risk recommendation lacking strong evidence?"
+        ],
+        "confidence_score": 0.6
+      },
+      "claims_ledger": [
+        {
+          "claim_id": "CLM-0001",
+          "claim_text": "Differential includes: Possible acute coronary syndrome (hypothesis)",
+          "claim_type": "Inferred",
+          "confidence": "Medium",
+          "evidence_items": [
+            {
+              "source_type": "ehr_or_imaging",
+              "source_id": "medgemma_report",
+              "quote_or_summary": "CT | chest | Mild bibasilar atelectatic change. No focal consolidation.",
+              "method": "qual",
+              "strength_level": "moderate"
+            }
+          ],
+          "reasoning": "Differential item derived from integrated EHR+image narrative",
+          "uncertainty": "Requires verifier consistency check",
+          "depends_on_claim_ids": []
+        },
+        {
+          "claim_id": "CLM-0002",
+          "claim_text": "Differential includes: Possible cardiopulmonary decompensation (hypothesis)",
+          "claim_type": "Inferred",
+          "confidence": "Medium",
+          "evidence_items": [
+            {
+              "source_type": "ehr_or_imaging",
+              "source_id": "medgemma_report",
+              "quote_or_summary": "CT | chest | Mild bibasilar atelectatic change. No focal consolidation.",
+              "method": "qual",
+              "strength_level": "moderate"
+            }
+          ],
+          "reasoning": "Differential item derived from integrated EHR+image narrative",
+          "uncertainty": "Requires verifier consistency check",
+          "depends_on_claim_ids": []
+        },
+        {
+          "claim_id": "CLM-0003",
+          "claim_text": "Objective summary: CT | chest | Mild bibasilar atelectatic change. No focal consolidation.; Chest pain documented in recent EHR narrative; Dyspnea/shortness of breath documented; Labs available: 1; Vitals available: 1",
+          "claim_type": "Observed",
+          "confidence": "Medium",
+          "evidence_items": [
+            {
+              "source_type": "patient_summary",
+              "source_id": "patient_summary",
+              "quote_or_summary": "Derived from timeline/labs/vitals summary",
+              "method": "qual",
+              "strength_level": "moderate"
+            }
+          ],
+          "reasoning": "Objective section maps directly to extracted observations",
+          "uncertainty": "May omit missing negatives",
+          "depends_on_claim_ids": []
+        },
+        {
+          "claim_id": "CLM-0004",
+          "claim_text": "Recommended action: Correlate symptoms with objective findings and timeline",
+          "claim_type": "Recommended",
+          "confidence": "Medium",
+          "evidence_items": [
+            {
+              "source_type": "literature",
+              "source_id": "biomcp-gene_disease_association-1",
+              "quote_or_summary": "# Record 1\nPmid: 39962183\nPmcid: PMC11832766\nTitle:\n  Association between ACTN3 (R577X), BDKRB2 (-9/+9) and AGT (M235T)\n  polymorphisms and physical performance in Brazilian junior handball\n  players\nJournal: Sci Rep\nDate: 2025-02-17T00:00:00Z\nDoi: 10.1038/s41598-025-90684-y\nAbstract:\n  Team handball performance relies on physical and technical abilities,\n  influenced by environmental and genetic factors. Variants in ACTN3 R577X\n  (rs1815739), BDKRB2 -9/+9 (rs5810761), and AGT Met235Thr (rs699) genes\n  are associated with athletic performance, but their relevance in\n  handball remains unclear. Therefore, this study aimed to investigate the\n  association of these polymorphisms with physical p",
+              "method": "qual",
+              "strength_level": "moderate"
+            },
+            {
+              "source_type": "literature",
+              "source_id": "biomcp-gene_disease_association-1",
+              "quote_or_summary": "# Record 1\nPmid: 40454940\nPmcid: PMC12191924\nTitle: A new naphthalene-based fluorogenic substrate for cytochrome P450 4A11\nJournal: Biochem J\nDate: 2025-05-30T00:00:00Z\nDoi: 10.1042/BCJ20253130\nAbstract:\n  We aimed to create a high-throughput fluorimetric assay for the activity\n  of CYP4A11, the major 20-HETE-producing enzyme. To this end, we probed\n  3-(6-methoxynaphthalen-2-yl)acrylic acid (MONACRA) as a potential\n  CYP4A11 substrate. We studied its metabolism using human liver\n  microsomes (HLM) and recombinant P450 enzymes. O-demethylation of\n  MONACRA by cytochromes P450 creates 3-(6-hydroxynaphthalen-2-yl)acrylic\n  acid. The bright fluorescence of the product and its clear spectral\n  r",
+              "method": "qual",
+              "strength_level": "moderate"
+            }
+          ],
+          "reasoning": "Plan recommendation from supervisor synthesis",
+          "uncertainty": "Recommendation remains provisional without strong supporting evidence",
+          "depends_on_claim_ids": [
+            "CLM-0001"
+          ]
+        },
+        {
+          "claim_id": "CLM-0005",
+          "claim_text": "Recommended action: Prioritize evidence-backed differential items",
+          "claim_type": "Recommended",
+          "confidence": "Medium",
+          "evidence_items": [
+            {
+              "source_type": "literature",
+              "source_id": "biomcp-gene_disease_association-1",
+              "quote_or_summary": "# Record 1\nPmid: 39962183\nPmcid: PMC11832766\nTitle:\n  Association between ACTN3 (R577X), BDKRB2 (-9/+9) and AGT (M235T)\n  polymorphisms and physical performance in Brazilian junior handball\n  players\nJournal: Sci Rep\nDate: 2025-02-17T00:00:00Z\nDoi: 10.1038/s41598-025-90684-y\nAbstract:\n  Team handball performance relies on physical and technical abilities,\n  influenced by environmental and genetic factors. Variants in ACTN3 R577X\n  (rs1815739), BDKRB2 -9/+9 (rs5810761), and AGT Met235Thr (rs699) genes\n  are associated with athletic performance, but their relevance in\n  handball remains unclear. Therefore, this study aimed to investigate the\n  association of these polymorphisms with physical p",
+              "method": "qual",
+              "strength_level": "moderate"
+            },
+            {
+              "source_type": "literature",
+              "source_id": "biomcp-gene_disease_association-1",
+              "quote_or_summary": "# Record 1\nPmid: 40454940\nPmcid: PMC12191924\nTitle: A new naphthalene-based fluorogenic substrate for cytochrome P450 4A11\nJournal: Biochem J\nDate: 2025-05-30T00:00:00Z\nDoi: 10.1042/BCJ20253130\nAbstract:\n  We aimed to create a high-throughput fluorimetric assay for the activity\n  of CYP4A11, the major 20-HETE-producing enzyme. To this end, we probed\n  3-(6-methoxynaphthalen-2-yl)acrylic acid (MONACRA) as a potential\n  CYP4A11 substrate. We studied its metabolism using human liver\n  microsomes (HLM) and recombinant P450 enzymes. O-demethylation of\n  MONACRA by cytochromes P450 creates 3-(6-hydroxynaphthalen-2-yl)acrylic\n  acid. The bright fluorescence of the product and its clear spectral\n  r",
+              "method": "qual",
+              "strength_level": "moderate"
+            }
+          ],
+          "reasoning": "Plan recommendation from supervisor synthesis",
+          "uncertainty": "Recommendation remains provisional without strong supporting evidence",
+          "depends_on_claim_ids": [
+            "CLM-0001"
+          ]
+        },
+        {
+          "claim_id": "CLM-0006",
+          "claim_text": "Recommended action: Collect missing objective data for unresolved uncertainty",
+          "claim_type": "Recommended",
+          "confidence": "Medium",
+          "evidence_items": [
+            {
+              "source_type": "literature",
+              "source_id": "biomcp-gene_disease_association-1",
+              "quote_or_summary": "# Record 1\nPmid: 39962183\nPmcid: PMC11832766\nTitle:\n  Association between ACTN3 (R577X), BDKRB2 (-9/+9) and AGT (M235T)\n  polymorphisms and physical performance in Brazilian junior handball\n  players\nJournal: Sci Rep\nDate: 2025-02-17T00:00:00Z\nDoi: 10.1038/s41598-025-90684-y\nAbstract:\n  Team handball performance relies on physical and technical abilities,\n  influenced by environmental and genetic factors. Variants in ACTN3 R577X\n  (rs1815739), BDKRB2 -9/+9 (rs5810761), and AGT Met235Thr (rs699) genes\n  are associated with athletic performance, but their relevance in\n  handball remains unclear. Therefore, this study aimed to investigate the\n  association of these polymorphisms with physical p",
+              "method": "qual",
+              "strength_level": "moderate"
+            },
+            {
+              "source_type": "literature",
+              "source_id": "biomcp-gene_disease_association-1",
+              "quote_or_summary": "# Record 1\nPmid: 40454940\nPmcid: PMC12191924\nTitle: A new naphthalene-based fluorogenic substrate for cytochrome P450 4A11\nJournal: Biochem J\nDate: 2025-05-30T00:00:00Z\nDoi: 10.1042/BCJ20253130\nAbstract:\n  We aimed to create a high-throughput fluorimetric assay for the activity\n  of CYP4A11, the major 20-HETE-producing enzyme. To this end, we probed\n  3-(6-methoxynaphthalen-2-yl)acrylic acid (MONACRA) as a potential\n  CYP4A11 substrate. We studied its metabolism using human liver\n  microsomes (HLM) and recombinant P450 enzymes. O-demethylation of\n  MONACRA by cytochromes P450 creates 3-(6-hydroxynaphthalen-2-yl)acrylic\n  acid. The bright fluorescence of the product and its clear spectral\n  r",
+              "method": "qual",
+              "strength_level": "moderate"
+            }
+          ],
+          "reasoning": "Plan recommendation from supervisor synthesis",
+          "uncertainty": "Recommendation remains provisional without strong supporting evidence",
+          "depends_on_claim_ids": [
+            "CLM-0001"
+          ]
+        },
+        {
+          "claim_id": "CLM-0007",
+          "claim_text": "Recommended action: Apply verifier patch list before release",
+          "claim_type": "Recommended",
+          "confidence": "Medium",
+          "evidence_items": [
+            {
+              "source_type": "literature",
+              "source_id": "biomcp-gene_disease_association-1",
+              "quote_or_summary": "# Record 1\nPmid: 39962183\nPmcid: PMC11832766\nTitle:\n  Association between ACTN3 (R577X), BDKRB2 (-9/+9) and AGT (M235T)\n  polymorphisms and physical performance in Brazilian junior handball\n  players\nJournal: Sci Rep\nDate: 2025-02-17T00:00:00Z\nDoi: 10.1038/s41598-025-90684-y\nAbstract:\n  Team handball performance relies on physical and technical abilities,\n  influenced by environmental and genetic factors. Variants in ACTN3 R577X\n  (rs1815739), BDKRB2 -9/+9 (rs5810761), and AGT Met235Thr (rs699) genes\n  are associated with athletic performance, but their relevance in\n  handball remains unclear. Therefore, this study aimed to investigate the\n  association of these polymorphisms with physical p",
+              "method": "qual",
+              "strength_level": "moderate"
+            },
+            {
+              "source_type": "literature",
+              "source_id": "biomcp-gene_disease_association-1",
+              "quote_or_summary": "# Record 1\nPmid: 40454940\nPmcid: PMC12191924\nTitle: A new naphthalene-based fluorogenic substrate for cytochrome P450 4A11\nJournal: Biochem J\nDate: 2025-05-30T00:00:00Z\nDoi: 10.1042/BCJ20253130\nAbstract:\n  We aimed to create a high-throughput fluorimetric assay for the activity\n  of CYP4A11, the major 20-HETE-producing enzyme. To this end, we probed\n  3-(6-methoxynaphthalen-2-yl)acrylic acid (MONACRA) as a potential\n  CYP4A11 substrate. We studied its metabolism using human liver\n  microsomes (HLM) and recombinant P450 enzymes. O-demethylation of\n  MONACRA by cytochromes P450 creates 3-(6-hydroxynaphthalen-2-yl)acrylic\n  acid. The bright fluorescence of the product and its clear spectral\n  r",
+              "method": "qual",
+              "strength_level": "moderate"
+            }
+          ],
+          "reasoning": "Plan recommendation from supervisor synthesis",
+          "uncertainty": "Recommendation remains provisional without strong supporting evidence",
+          "depends_on_claim_ids": [
+            "CLM-0001"
+          ]
+        },
+        {
+          "claim_id": "CLM-0008",
+          "claim_text": "Recommended action: Keep genotype-dependent recommendations caveated",
+          "claim_type": "Recommended",
+          "confidence": "Medium",
+          "evidence_items": [
+            {
+              "source_type": "literature",
+              "source_id": "biomcp-gene_disease_association-1",
+              "quote_or_summary": "# Record 1\nPmid: 39962183\nPmcid: PMC11832766\nTitle:\n  Association between ACTN3 (R577X), BDKRB2 (-9/+9) and AGT (M235T)\n  polymorphisms and physical performance in Brazilian junior handball\n  players\nJournal: Sci Rep\nDate: 2025-02-17T00:00:00Z\nDoi: 10.1038/s41598-025-90684-y\nAbstract:\n  Team handball performance relies on physical and technical abilities,\n  influenced by environmental and genetic factors. Variants in ACTN3 R577X\n  (rs1815739), BDKRB2 -9/+9 (rs5810761), and AGT Met235Thr (rs699) genes\n  are associated with athletic performance, but their relevance in\n  handball remains unclear. Therefore, this study aimed to investigate the\n  association of these polymorphisms with physical p",
+              "method": "qual",
+              "strength_level": "moderate"
+            },
+            {
+              "source_type": "literature",
+              "source_id": "biomcp-gene_disease_association-1",
+              "quote_or_summary": "# Record 1\nPmid: 40454940\nPmcid: PMC12191924\nTitle: A new naphthalene-based fluorogenic substrate for cytochrome P450 4A11\nJournal: Biochem J\nDate: 2025-05-30T00:00:00Z\nDoi: 10.1042/BCJ20253130\nAbstract:\n  We aimed to create a high-throughput fluorimetric assay for the activity\n  of CYP4A11, the major 20-HETE-producing enzyme. To this end, we probed\n  3-(6-methoxynaphthalen-2-yl)acrylic acid (MONACRA) as a potential\n  CYP4A11 substrate. We studied its metabolism using human liver\n  microsomes (HLM) and recombinant P450 enzymes. O-demethylation of\n  MONACRA by cytochromes P450 creates 3-(6-hydroxynaphthalen-2-yl)acrylic\n  acid. The bright fluorescence of the product and its clear spectral\n  r",
+              "method": "qual",
+              "strength_level": "moderate"
+            }
+          ],
+          "reasoning": "Plan recommendation from supervisor synthesis",
+          "uncertainty": "Recommendation remains provisional without strong supporting evidence",
+          "depends_on_claim_ids": [
+            "CLM-0001"
+          ]
+        }
+      ],
+      "verifier_report": {
+        "status": "PASS",
+        "patch_list": [],
+        "check_summary": {
+          "claim_count": 8,
+          "patch_count": 0
+        }
+      },
+      "citations": [
+        {
+          "citation_id": "biomcp-gene_disease_association-1",
+          "intent": "GENE_DISEASE_ASSOCIATION",
+          "query": "AGT, c.803T>C, heterozygous phenotype association clinical relevance",
+          "source": "biomcp",
+          "summary": "# Record 1\nPmid: 39962183\nPmcid: PMC11832766\nTitle:\n  Association between ACTN3 (R577X), BDKRB2 (-9/+9) and AGT (M235T)\n  polymorphisms and physical performance in Brazilian junior handball\n  players\nJournal: Sci Rep\nDate: 2025-02-17T00:00:00Z\nDoi: 10.1038/s41598-025-90684-y\nAbstract:\n  Team handball performance relies on physical and technical abilities,\n  influenced by environmental and genetic factors. Variants in ACTN3 R577X\n  (rs1815739), BDKRB2 -9/+9 (rs5810761), and AGT Met235Thr (rs699) genes\n  are associated with athletic performance, but their relevance in\n  handball remains unclear. Therefore, this study aimed to investigate the\n  association of these polymorphisms with physical p",
+          "metadata": {
+            "backend": "biomcp_sdk",
+            "source_id": "biomcp-1",
+            "ladder_step": 1,
+            "sdk_ok": true,
+            "sdk_attempted_calls": [
+              "biomcp.articles.search.search_articles(request)"
+            ],
+            "sdk_errors": []
+          }
+        },
+        {
+          "citation_id": "biomcp-gene_disease_association-1",
+          "intent": "GENE_DISEASE_ASSOCIATION",
+          "query": "CYP4A11 phenotype association clinical relevance",
+          "source": "biomcp",
+          "summary": "# Record 1\nPmid: 40454940\nPmcid: PMC12191924\nTitle: A new naphthalene-based fluorogenic substrate for cytochrome P450 4A11\nJournal: Biochem J\nDate: 2025-05-30T00:00:00Z\nDoi: 10.1042/BCJ20253130\nAbstract:\n  We aimed to create a high-throughput fluorimetric assay for the activity\n  of CYP4A11, the major 20-HETE-producing enzyme. To this end, we probed\n  3-(6-methoxynaphthalen-2-yl)acrylic acid (MONACRA) as a potential\n  CYP4A11 substrate. We studied its metabolism using human liver\n  microsomes (HLM) and recombinant P450 enzymes. O-demethylation of\n  MONACRA by cytochromes P450 creates 3-(6-hydroxynaphthalen-2-yl)acrylic\n  acid. The bright fluorescence of the product and its clear spectral\n  r",
+          "metadata": {
+            "backend": "biomcp_sdk",
+            "source_id": "biomcp-1",
+            "ladder_step": 2,
+            "sdk_ok": true,
+            "sdk_attempted_calls": [
+              "biomcp.articles.search.search_articles(request)"
+            ],
+            "sdk_errors": []
+          }
+        }
+      ],
+      "audit_log": [
+        {
+          "timestamp_utc": "2026-02-24T04:31:43.814720+00:00",
+          "agent": "orchestrator_v2",
+          "action": "init_blackboard",
+          "details": {
+            "timeline_events": 1
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:53.737746+00:00",
+          "agent": "a1_ehr_image_reporter",
+          "action": "write_medgemma_report",
+          "details": {
+            "assessments": 2
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:58.832346+00:00",
+          "agent": "a2_genotype_interpreter",
+          "action": "write_genotype_report",
+          "details": {
+            "variants": 1,
+            "citations": 2
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:58.832467+00:00",
+          "agent": "orchestrator_v2",
+          "action": "revision_start",
+          "details": {
+            "revision": 0
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:58.832566+00:00",
+          "agent": "a3_supervisor",
+          "action": "write_draft_soap",
+          "details": {
+            "differential": 2,
+            "confidence_score": 0.6,
+            "used_openai": false,
+            "confidence_script": ""
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:58.832827+00:00",
+          "agent": "a4_evidence_assembler",
+          "action": "write_claims_ledger",
+          "details": {
+            "claims": 7
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.136763+00:00",
+          "agent": "a5_verifier",
+          "action": "write_verifier_report",
+          "details": {
+            "status": "PASS",
+            "patches": 0
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.136906+00:00",
+          "agent": "orchestrator_v2",
+          "action": "high_stakes_revision_requested",
+          "details": {
+            "revision": 0
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.142228+00:00",
+          "agent": "a1_ehr_image_reporter",
+          "action": "write_medgemma_report",
+          "details": {
+            "assessments": 2
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.142274+00:00",
+          "agent": "a2_genotype_interpreter",
+          "action": "write_genotype_report",
+          "details": {
+            "variants": 1,
+            "citations": 2
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.142281+00:00",
+          "agent": "orchestrator_v2",
+          "action": "revision_start",
+          "details": {
+            "revision": 1
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.142394+00:00",
+          "agent": "a3_supervisor",
+          "action": "write_draft_soap",
+          "details": {
+            "differential": 2,
+            "confidence_score": 0.6,
+            "used_openai": false,
+            "confidence_script": ""
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.142588+00:00",
+          "agent": "a4_evidence_assembler",
+          "action": "write_claims_ledger",
+          "details": {
+            "claims": 8
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.492779+00:00",
+          "agent": "a5_verifier",
+          "action": "write_verifier_report",
+          "details": {
+            "status": "PASS",
+            "patches": 0
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.492925+00:00",
+          "agent": "orchestrator_v2",
+          "action": "high_stakes_revision_requested",
+          "details": {
+            "revision": 1
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.500724+00:00",
+          "agent": "a1_ehr_image_reporter",
+          "action": "write_medgemma_report",
+          "details": {
+            "assessments": 2
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.500781+00:00",
+          "agent": "a2_genotype_interpreter",
+          "action": "write_genotype_report",
+          "details": {
+            "variants": 1,
+            "citations": 2
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.500789+00:00",
+          "agent": "orchestrator_v2",
+          "action": "revision_start",
+          "details": {
+            "revision": 2
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.500922+00:00",
+          "agent": "a3_supervisor",
+          "action": "write_draft_soap",
+          "details": {
+            "differential": 2,
+            "confidence_score": 0.6,
+            "used_openai": false,
+            "confidence_script": ""
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.501135+00:00",
+          "agent": "a4_evidence_assembler",
+          "action": "write_claims_ledger",
+          "details": {
+            "claims": 8
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.871492+00:00",
+          "agent": "a5_verifier",
+          "action": "write_verifier_report",
+          "details": {
+            "status": "PASS",
+            "patches": 0
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.871657+00:00",
+          "agent": "orchestrator_v2",
+          "action": "max_revisions_reached",
+          "details": {
+            "revision": 2,
+            "high_stakes": true,
+            "verifier_status": "PASS"
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.871762+00:00",
+          "agent": "a6_critic",
+          "action": "write_critic_report",
+          "details": {
+            "recommendation": "NO_GO"
+          }
+        },
+        {
+          "timestamp_utc": "2026-02-24T04:31:59.871856+00:00",
+          "agent": "orchestrator_v2",
+          "action": "causal_postcheck",
+          "details": {
+            "findings": 2
+          }
+        }
+      ],
+      "escalate_to_doctor": true,
+      "critic_report": {
+        "falsification_attempts": [],
+        "what_would_change_mind": [
+          "Objective negative findings that disconfirm leading diagnosis",
+          "Higher-quality evidence supporting or refuting low-confidence recommendations",
+          "Temporal reconciliation of symptom onset and modality findings"
+        ],
+        "additional_evidence_demands": [],
+        "recommendation": "NO_GO"
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "created_at": "2026-02-24T04:34:59.813475+00:00",
+  "mode": "v2",
+  "patient_id": "08240b05-a834-d6ad-42ad-951210005628",
+  "files": {
+    "agent_outputs": "medagent/runtime/examples/cluster_runs/local_v2_20260223_233447/logs/agent_outputs.jsonl",
+    "agent_comms": "medagent/runtime/examples/cluster_runs/local_v2_20260223_233447/logs/agent_comms.jsonl"
+  }
+}

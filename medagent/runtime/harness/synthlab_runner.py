@@ -10,6 +10,11 @@ UTC = timezone.utc
 from pathlib import Path
 from typing import Any
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = None
+
 # Allow direct script execution from repo root without package install.
 ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
@@ -342,7 +347,8 @@ def run_from_synthlab(
     engine = build_orchestrator()
 
     runs: list[dict[str, Any]] = []
-    for patient in dataset:
+    patients_iter = tqdm(dataset, desc="Patients", unit="patient") if tqdm else dataset
+    for patient in patients_iter:
         runs.append(run_patient_case(patient, engine=engine, kg_backend=kg_backend))
 
     summary = {
