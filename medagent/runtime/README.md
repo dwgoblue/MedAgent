@@ -37,7 +37,22 @@ export MEDAGENT_PIPELINE_MODE=mvp  # default
 export MEDAGENT_PIPELINE_MODE=v2   # blackboard 6-agent flow
 ```
 
-## Cluster submit (.sbat)
+## Cluster or personal machine
+
+### Personal cluster / bare metal (no job scheduler)
+
+Use `run_medagent_local.sh` from the repo root. Same flags as the `.sbat` script, plus optional `--cpus N`, `--gpus 0,1,2,3`, or `--ngpus N`:
+
+```bash
+./medagent/runtime/run_medagent_local.sh \
+  --ngpus 1 \
+  --mode v2 \
+  --use-medgemma 1 \
+  --hf-home $HOME/.cache/huggingface \
+  --medgemma-model-id google/medgemma-1.5-4b-it
+```
+
+### Cluster submit (.sbat)
 
 Script:
 
