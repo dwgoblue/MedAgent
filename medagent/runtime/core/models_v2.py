@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any
 
 from medagent.runtime.core.models import CPB

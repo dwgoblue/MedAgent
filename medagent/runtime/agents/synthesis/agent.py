@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from datetime import datetime, UTC
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 
 from medagent.runtime.core.models import ClaimObject, DraftOutput, FinalOutput, SensitivityFinding
 

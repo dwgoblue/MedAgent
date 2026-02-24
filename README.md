@@ -16,6 +16,13 @@ git clone --recursive https://github.com/dwgoblue/MedAgent.git
 cd MedAgent
 ```
 
+<!-- If a submodule fails with **"Repository not found"** (e.g. private `synthlab`), the URL in `.gitmodules` may be wrong for your org. Set the correct URL and retry:
+
+```bash
+git config submodule.synthlab.url https://github.com/bschilder/synthlab.git 
+git submodule update --init --recursive
+``` -->
+
 Use the unified `medagent` env:
 
 ```bash

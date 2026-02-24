@@ -3,7 +3,9 @@ from __future__ import annotations
 import argparse
 import json
 from collections import Counter
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from pathlib import Path
 from time import perf_counter
 from typing import Any

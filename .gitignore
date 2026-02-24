@@ -11,3 +11,6 @@ medagent_system/runtime/examples/cluster_runs/
 # Python caches
 __pycache__/
 .pytest_cache/
+
+# Ensure .gitmodules is always tracked (submodules need it)
+!.gitmodules

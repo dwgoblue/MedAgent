@@ -1,9 +1,3 @@
-[submodule "Biomni"]
-	path = Biomni
-	url = https://github.com/snap-stanford/Biomni.git
-[submodule "medgemma_cup"]
-	path = medgemma_cup
-	url = https://github.com/dwgoblue/medgemma_cup.git
 [submodule "synthlab"]
 	path = synthlab
 	url = https://github.com/bschilder/synthlab.git
