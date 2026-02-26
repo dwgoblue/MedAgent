@@ -1,6 +1,6 @@
 # MedAgent: A Reproducible Multi-agent System for Summarizing and Interpreting Multimodal Medical Data
 
-![medagent](./img/medagent_logo.png)
+![medagent](./img/medagent_logo2.png)
 
 **Authors**: Da Wei Lin & Brian M. Schilder (Cold Spring Harbor Laboratory)
 
