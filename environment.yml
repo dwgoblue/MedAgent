@@ -19,6 +19,7 @@ dependencies:
   - ipywidgets
   - pytest
   - streamlit
+  - graphviz
   - numpy>=1.26,<2
   - faiss-gpu>=1.7.0
   - pip:
@@ -35,6 +36,7 @@ dependencies:
       - pydicom>=2.4
       - pillow>=10.0
       - python-dotenv
+      - graphviz
       - litellm
       - pyarrow
       - biomcp-python
