@@ -1,6 +1,6 @@
 # MedAgent: A Reproducible Multi-agent System for Summarizing and Interpreting Multimodal Medical Data
 
-![medagent](./img/ChatGPT Image Feb 24, 2026, 06_17_18 PM.png)
+![medagent](./img/medagent_logo.png)
 
 **Authors**: Da Wei Lin & Brian M. Schilder (Cold Spring Harbor Laboratory)
 
