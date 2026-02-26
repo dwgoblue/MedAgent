@@ -1,7 +1,16 @@
-# MedAgent
+# MedAgent: A Reproducible Multi-agent System for Summarizing and Interpreting Multimodal Medical Data
 
-User-facing onboarding for installing and running MedAgent (v1/v2), including MedGemma, SynthLab, and BioMCP workflows.
-MedAgent is inspired by Biomni's agent/tool orchestration patterns, but this repository does not vendor the Biomni codebase.
+![medagent](img/ChatGPT Image Feb 24, 2026, 06_17_18 PM.png)
+
+**Authors**: Da Wei Lin & Brian M. Schilder (Cold Spring Harbor Laboratory)
+
+## Introduction
+
+MedAgent is a **reproducible multi-agent system** for clinical decision support. It orchestrates specialist agents—including [MedGemma](https://huggingface.co/google/medgemma) for imaging and reasoning, SynthLab for synthetic patient data, and BioMCP for literature and evidence—on a shared blackboard to produce evidence-backed assessments, [SOAP notes](https://www.ncbi.nlm.nih.gov/books/NBK482263/), and ranked care options. This repository was our submission to the [Kaggle Med-Gemma Impact Challenge](https://www.kaggle.com/competitions/med-gemma-impact-challenge/writeups/medagent-a-reproducible-multi-agent-system). Making the pipeline open and reproducible matters for trust in AI-assisted medicine and for the community to build on MedGemma in real workflows.
+
+# Setup
+
+User-facing onboarding for installing and running MedAgent (v1/v2), including MedGemma, SynthLab, and BioMCP workflows, is below. MedAgent is inspired by Biomni's agent/tool orchestration patterns, but this repository does not vendor the Biomni codebase.
 
 For architecture and advanced implementation details, see:
 - `medagent/README.md`
@@ -101,52 +110,22 @@ Run from the repo root. Same options as the SLURM script, plus optional `--cpus 
 
 Script: `medagent/runtime/run_medagent_local.sh`
 
-**v1**
-
-```bash
-./medagent/runtime/run_medagent_local.sh --mode v1
-```
-
-**v2 + MedGemma + BioMCP SDK + critic**
+**v2 + MedGemma + BioMCP SDK + critic** (SynthLab pipeline; `--use-synthlab-soap` only applies when running SynthLab patients via `--synthlab-max-patients`)
 
 ```bash
 ./medagent/runtime/run_medagent_local.sh \
   --mode v2 \
   --use-medgemma 1 \
+  --use-synthlab-soap 1 \
+  --synthlab-max-patients 1 \
+  --synthlab-download-if-missing 1 \
   --hf-home $HOME/.cache/huggingface \
   --medgemma-model-id google/medgemma-1.5-4b-it \
   --use-biomcp-sdk 1 \
   --enable-critic 1 \
   --max-supervisor-revisions 2 \
   --max-critic-cycles 1
-```
-
-**Use one GPU only** (e.g. leave others free):
-
-```bash
-./medagent/runtime/run_medagent_local.sh \
-  --ngpus 1 \
-  --mode v2 \
-  --use-medgemma 1 \
-  --hf-home $HOME/.cache/huggingface \
-  --medgemma-model-id google/medgemma-1.5-4b-it \
-  --use-biomcp-sdk 1 \
-  --enable-critic 1 \
-  --max-supervisor-revisions 2 \
-  --max-critic-cycles 1
-```
-
-**v2 multi-patient SynthLab**
-
-```bash
-./medagent/runtime/run_medagent_local.sh \
-  --mode v2 \
-  --use-medgemma 1 \
-  --use-biomcp-sdk 1 \
-  --synthlab-max-patients 5 \
-  --synthlab-modalities fhir,genomics,notes,dicom \
-  --synthlab-download-if-missing 1
-```
+``` 
 
 **v2 benchmark run (5 patients)**
 
@@ -280,3 +259,7 @@ Open:
   run `check_biomcp_sdk.py` first and inspect `debug` block.
 - MedGemma fallback used:
   check `final_output.json` at `provenance.blackboard.medgemma_report.notes`.
+- **SOAP notes short/vague vs original SynthLab**: By default, MedAgent builds SOAP from the supervisor (short summary of reporter + genotype). For **full, structured SOAP notes** matching the original SynthLab agentic pipeline (detailed S/O/A/P, patient story, assessment logic, future considerations), use SynthLab's SOAPNoteGenerator: pass `--use-synthlab-soap` to the runner, or set `MEDAGENT_USE_SYNTHLAB_SOAP=1`. Requires the SynthLab submodule and its MedGemma/SOAP dependencies; SOAP will be generated after the engine run and used as `soap_final`.
+- **SynthLab SOAP: "or_mask_function / and_mask_function require torch>=2.6"**: The SynthLab SOAP generator (used with `--use-synthlab-soap`) goes through a code path that needs PyTorch ≥ 2.6. Upgrade with: `pip install 'torch>=2.6'` (or your CUDA-specific build, e.g. `pip install 'torch>=2.6' --index-url https://download.pytorch.org/whl/cu124`).
+- **SynthLab SOAP: "Could not import module 'AutoProcessor'. Are this object's requirements defined correctly?"**: Transformers is installed but AutoProcessor needs optional vision deps. Install with: `pip install 'transformers[vision]' pillow` (and ensure `torch` is installed). Run the script with the same Python (e.g. `conda activate medagent`).
+- **SynthLab SOAP: "operator torchvision::nms does not exist"** (when importing AutoProcessor): Torch and torchvision are out of sync. Reinstall a matching pair: `pip install --upgrade torch torchvision`. If you use a CUDA build, install both from the same source (e.g. [PyTorch Get Started](https://pytorch.org/get-started/locally/): pick your CUDA version and run the given `pip install torch torchvision` command).
